@@ -1,0 +1,22 @@
+Computer Stereo Vision
+Implementation of a real-time stereo vision algorithm on a cost-effective heterogeneous multicore platform
+By: Taki Eddine Saidi, Abdelhakim Khouas, Abbes Amira
+01 Nov 2022
+
+Algorithms to know: 
+SAD - sum of absolute differences
+
+
+Attempts to implement a "sparse rank based stereo matching algorithm"
+
+Proposed implementation tactics to improve performance
+- combining a sparse rank transform with a composition of 1-D and 2-D box-filtering algorithms to reduce computational complexity
+- using a Neon single instruction multiple data (SIMD) operation scheme to speed up rank computations and SAD correlation stages
+- use of circular buffers reduces memory utilization during rank computation
+- raw disparity map's quality improved by combining left-right consistency check, occlusion filling, and morphological closing operations
+
+Current approaches to real-time stereo vision systems
+- Global
+- Local
+
+This paper focuses more on LOCAL algorithms
