@@ -1,5 +1,6 @@
 #include <opencv4/opencv2/opencv.hpp> // OpenCV header
 #include <opencv4/opencv2/features2d.hpp>
+#include <opencv4/opencv2/calib3d.hpp>
 #include <iostream>
 
 int main() {
@@ -18,6 +19,25 @@ int main() {
 
 	cv::Mat frame;
 	cv::Mat frame2;
+	cv::Mat output;
+	while (true) {
+	cap >> frame;
+	cap1 >> frame2;
+	
+	cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
+	cv::cvtColor(frame2, frame2, cv::COLOR_BGR2GRAY);
+
+	auto stereo = cv::StereoBM::create(16, 15);
+	stereo->compute(frame2, frame, output);
+	
+	cv::imshow("Webcam Live Feed2", output);
+
+	if (cv::waitKey(5000) == 'q') {
+		break;
+	} 
+
+	}
+
 	/*
 	while (true) {
 		cap >> frame;
@@ -51,6 +71,7 @@ int main() {
 
 
 	// init ORB detector 
+	/*
 	int nfeatures = 500;
 	cv::Ptr<cv::ORB> orb = cv::ORB::create(nfeatures);
 
@@ -124,6 +145,6 @@ int main() {
 	cap1.release();
 
 	cv::destroyAllWindows();
-
+	*/
 	return 0;
 }

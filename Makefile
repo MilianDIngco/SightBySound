@@ -1,9 +1,10 @@
 # Variables for compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++11 $(shell pkg-config --cflags opencv)
-LDFLAGS = $(shell pkg-config --libs opencv)
+CXXFLAGS = -std=c++11 $(shell pkg-config --cflags opencv4)
+LDFLAGS = $(shell pkg-config --libs opencv4)
 
-test: test.cpp
-	$(CXX) $(CXXFLAGS) test.cpp -o test $(LDFLAGS)
+
+test: main.cpp
+	$(CXX) $(CXXFLAGS) main.cpp -o main $(LDFLAGS) -lopenal
 clean: 
-	rm -f test
+	rm -f main
