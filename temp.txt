@@ -1,3 +1,0 @@
-OpenCV Error: Assertion failed (type == src2.type() && src1.cols == src2.cols && (type == CV_32F || type == CV_8U)) in batchDistance, file /build/opencv-L65chJ/opencv-3.2.0+dfsg/modules/core/src/stat.cpp, line 3934
-terminate called after throwing an instance of 'cv::Exception'
-  what():  /build/opencv-L65chJ/opencv-3.2.0+dfsg/modules/core/src/stat.cpp:3934: error: (-215) type == src2.type() && src1.cols == src2.cols && (type == CV_32F || type == CV_8U) in function batchDistance

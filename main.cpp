@@ -1,14 +1,38 @@
 #include <opencv4/opencv2/opencv.hpp> // OpenCV header
 #include <opencv4/opencv2/features2d.hpp>
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <cmath>
 #include <sstream>  
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <unordered_map>
+#include <algorithm>
+#include <cctype>
+#include <variant>
+#include "save_wav.h"
+#include <vector>
 
-const int order = 2;
-const int square_size = 4; 
+/*
+Naming Conventions
+variables are named using snake_case
+global variables are ALL_CAPS
+methods use camelCase
+*/
+
+using ValueType = std::variant<int, double, std::string, bool>;
+
+// Setting variables
+int ORDER = 3; // order of hilbert curve, dimensions are determined from this
+double MIN_FREQ = 100; // lowest frequency
+double MAX_FREQ = 500; // highest frequency
+double DURATION = 5; // duration in seconds
+int SAMPLE_RATE = 22000; // number of samples per second
+std::string IMAGE_URL = "white.png"; // url to test image
+double VOLUME = 1; // 0 - 1
+bool PLAY_AUDIO = 1;
+
 
 struct Pair {
     int x;
@@ -28,7 +52,7 @@ struct Pair {
 Pair getCoord(int index) {
     // bounds checking; Number of points is ( 2 ^ order ) ^ 2 since it's a square
     // array for now
-    if (index >= std::pow(4, order))
+    if (index >= std::pow(4, ORDER))
       return Pair(-1, -1);
 
     Pair order1[] = {
@@ -39,7 +63,7 @@ Pair getCoord(int index) {
     // Depth of recursion is mapped by (log base 4) + 1
     // Index < 4 : order 1
     // Index < 16 : order 2 ...
-    int depth = order;
+    int depth = ORDER;
 
     int quadrant = index & 3;
     Pair coord(order1[quadrant]);
@@ -103,124 +127,219 @@ int genSampleArray(short*& samples, int sample_rate, float duration) {
     return sample_count;
 }
 
-void genSines(short* samples, int sample_count, int n_pixel, int sample_rate, float* volumes, float* freqs) {
-  std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
+void generateSines(short* samples, int sample_count, int n_pixel, int sample_rate, float* volumes, float* freqs) {
+  // std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
+  float max = 0;
     for (int i = 0; i < sample_count; i++) {
-        float sample = 0;
-        for (int n = 0; n < n_pixel; n++) {
-            sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
-        }
-        
-        // if (i % 100 == 0) {
-        //   std::cout << i << std::endl;
-        // }  
-        samples[i] = static_cast<short>(sample * 32767 / n_pixel);
-    
-        std::cout << samples[i] << std::endl;
+      float sample = 0;
+      for (int n = 0; n < n_pixel; n++) {
+          sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
+      }
+      //samples[i] = static_cast<short>(sample/ n_pixel * 32767 );
+      samples[i] = static_cast<short>(sample * 32767);
+
+      // if (i % 100 == 0)
+      //   std::cout << std::endl;
+      // if (i % 100 == 0)
+        // std::cout << (static_cast<float>(i) / static_cast<float>(sample_count)) << ": " << samples[i] << std::endl;
     }
+
+  std::cout << "\nnum samples: " << sample_count << std::endl;
 } 
+
+void generateHilbert(struct Pair hilbert[], int n_pixels) {
+  for (int i = 0; i < n_pixels; i++) {
+    hilbert[i] = getCoord(i);
+  }
+}
+
+void generateFrequencies(float freqs[], double min_freq, double max_freq, int n_pixels) {
+  double freq_step = (max_freq - min_freq) / n_pixels;
+  for (int i = 0; i < n_pixels; i++) {
+    freqs[i] = min_freq + (i * freq_step);
+  }
+}
+
+void generateVolumes(float volumes[], cv::Mat image, struct Pair hilbert[], int n_pixels) {
+  for (int i = 0; i < n_pixels; i++) {
+    float pixel_value = static_cast<float>(image.at<uchar>(hilbert[i].x, hilbert[i].y));
+    volumes[i] = pixel_value / 255.0f;
+  }
+}
+
+void captureImage(cv::Mat& image, int image_width) {
+  image = cv::imread(IMAGE_URL);
+  // First, try just using a gray scale image
+  cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+
+  // scale image down
+  cv::Size scaled_size(image_width, image_width);
+  cv::resize(image, image, scaled_size, 0, 0, cv::INTER_NEAREST);
+
+  // save image
+  cv::imwrite("out.png", image);
+}
 
 int main(int argc, char** argv) {
 
-  // Generate hilbert pair array
-  struct Pair hilbert[square_size];
-  for (int i = 0; i < square_size; i++) {
-    hilbert[i] = getCoord(i);
-    // std::cout << hilbert[i].toString() << std::endl;
-  }
-  std::cout << "hilbert done" << std::endl;
-  // Generate frequency array
-  float freqs[square_size];
-  float min_freq = 100;
-  float max_freq = 400;
-  float freq_step = (max_freq - min_freq) / square_size;
-  for (int i = 0; i < square_size; i++) {
-    freqs[i] = min_freq + (i * freq_step);
-    std::cout << freqs[i] << std::endl;
-  }
-  std::cout << "freq done" << std::endl;
-  // Capture image
-  // Open jpg file
-  cv::Mat image = cv::imread("apple.png");
+  // ------------------------------------------------Read in settings from text file----------------
+    std::ifstream settings ("settings.txt");
+    if (settings.is_open()) {
+      std::cout << "Settings opened successfully" << std::endl;
 
-  // TO DO: IMAGE PROCESSING
+      std::unordered_map<std::string, ValueType> setting_map;
+      std::string line;
+      while (std::getline(settings, line)) {
+        std::stringstream s(line);
 
-  // First, try just using a gray scale image
-  cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
-  std::cout << "image done" << std::endl;
-  // Then, if unclear try the depth images
+        // Grab the type
+        char type;
+        s >> type;
+        type = std::tolower(type);
 
-  // Create volume array from image
-  float volumes[square_size];
-  float max_volume = 1.0f; // ranges from 0 to 1
-  for (int i = 0; i < square_size; i++) {
-    float pixel_value = static_cast<float>(image.at<uchar>(hilbert[i].x, hilbert[i].y));
-    volumes[i] = (pixel_value / 255.0f) * max_volume;
-    // std::cout << volumes[i] << std::endl;
-  }
-  std::cout << "volume done" << std::endl;
+        // Grab the name
+        std::string name;
+        s >> name;
+        
+        // Grab the value
+        s.ignore(1); // skip space
+        std::string value;
+        std::getline(s, value);
 
+        switch (type) {
+          case 'i':
+            setting_map[name] = std::stoi(value);
+            break;
+          case 'd':
+            setting_map[name] = std::stod(value);
+            break;
+          case 's':
+            setting_map[name] = value;
+            break;
+          case 'b':
+            setting_map[name] = (bool) std::stoi(value);
+            break;
+          default:
+            std::cout << "ERROR: Setting type not defined";
+            return 1;
+        }
+      }
 
-  // Initialize OpenAL and create a context
-    ALCdevice *device = alcOpenDevice(nullptr); // open default device
-    if (!device) {
-        std::cerr << "Error: Could not open sound device." << std::endl;
-        return -1;
+      auto getValue = [&setting_map]<typename T>(const std::string& name, T& var) {
+        var = std::get<T>(setting_map.at(name));
+      };
+
+      getValue("ORDER", ORDER);
+      getValue("MIN_FREQ", MIN_FREQ);
+      getValue("MAX_FREQ", MAX_FREQ);
+      getValue("DURATION", DURATION);
+      getValue("SAMPLE_RATE", SAMPLE_RATE);
+      getValue("IMAGE_URL", IMAGE_URL);
+      getValue("VOLUME", VOLUME);
+      getValue("PLAY_AUDIO", PLAY_AUDIO);
+
+    } else {
+      std::cout << "Settings file failed to open\n Default settings applied" << std::endl;
+      // leave default settings
     }
 
-    std::cout << "open al device done" << std::endl;
+    settings.close();
 
-    ALCcontext *context = alcCreateContext(device, nullptr);
-    if (!context || !alcMakeContextCurrent(context)) {
-        std::cerr << "Error: Could not create or set context." << std::endl;
-        if (context) alcDestroyContext(context);
-        alcCloseDevice(device);
-        return -1;
-    }
-  std::cout << "create al context done" << std::endl;
+  // ------------------------------------------------Derive variables----------------
+    int image_width = std::pow(2, ORDER);
+    int n_pixels = image_width * image_width;
+
+  // ------------------------------------------------Generate hilbert pair array------------------------
+    struct Pair hilbert[n_pixels];
+    generateHilbert(hilbert, n_pixels);
+    std::cout << "hilbert done" << std::endl;
+  // ------------------------------------------------Generate frequency array------------------------------------------------
+    float freqs[n_pixels];
+    generateFrequencies(freqs, MIN_FREQ, MAX_FREQ, n_pixels);
+    std::cout << "freq done" << std::endl;
+
+  // ------------------------------------------------Sine waves------------------------------------------------
+    float sine[1]; // needs sample count
+
+    // GOAL: generate an array of samples
+
+    std::cout << "sine waves done" << std::endl;
+
+  // ------------------------------------------------Capture image------------------------------------------------
+    // Open jpg file
+    cv::Mat image;
+    captureImage(image, image_width);
+    std::cout << "image done" << std::endl;
+
+  // ------------------------------------------------Volume array------------------------------------------------
+    float volumes[n_pixels];
+    generateVolumes(volumes, image, hilbert, n_pixels);
+    std::cout << "volume done" << std::endl;
 
   // Generate Sine Wave and load into buffer
-  float duration = 1.0f;
-  short* samples = nullptr;
-  int sample_rate = 1000;
-  int sample_count = genSampleArray(samples, sample_rate, duration);
-  genSines(samples, sample_count, square_size, sample_rate, volumes, freqs);
-  std::cout << "sine waves done" << std::endl;
-  // Play sound
+    short* samples = nullptr;
+    int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
+    generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
+    std::cout << "samples done" << std::endl;
 
-  // Create a buffer and fill it with the generated sine wave data
-  ALuint buffer;
-  alGenBuffers(1, &buffer);
-  alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), sample_rate);
-  std::cout << "al buffers done" << std::endl;
-
-  // Create a source to play the buffer
-  ALuint source;
-  alGenSources(1, &source);
-  alSourcei(source, AL_BUFFER, buffer);
-  std::cout << "PLAYING" << std::endl;
-  // Play the sound
-  alSourcePlay(source);
-
-  // Wait for the sound to finish playing
-  ALint source_state;
-  alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-  while (source_state == AL_PLAYING) {
-      alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+  if (!PLAY_AUDIO) {
+    std::vector<short> sample_v(samples, samples + sample_count);
+    saveWav("sound.wav", sample_v, SAMPLE_RATE, 1);
   }
-  std::cout << "AUDIO FINISHED " << std::endl;
 
-  // Clean up OpenAL resources
-  alDeleteSources(1, &source);
-  alDeleteBuffers(1, &buffer);
-  std::cout << "Resources deleted" << std::endl;
+  if (PLAY_AUDIO) {
+    // Initialize OpenAL and create a context
+      ALCdevice *device = alcOpenDevice(nullptr); // open default device
+      if (!device) {
+          std::cerr << "Error: Could not open sound device." << std::endl;
+          return -1;
+      }
 
-  // Close OpenAL context and device
-  alcMakeContextCurrent(nullptr);
-  alcDestroyContext(context);
-  alcCloseDevice(device);
-  std::cout << "al context closed" << std::endl;
+      std::cout << "open al device done" << std::endl;
 
+      ALCcontext *context = alcCreateContext(device, nullptr);
+      if (!context || !alcMakeContextCurrent(context)) {
+          std::cerr << "Error: Could not create or set context." << std::endl;
+          if (context) alcDestroyContext(context);
+          alcCloseDevice(device);
+          return -1;
+      }
+    std::cout << "create al context done" << std::endl;
+    
+    // Create a buffer and fill it with the generated sine wave data
+    ALuint buffer;
+    alGenBuffers(1, &buffer);
+    alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
+    std::cout << "al buffers done" << std::endl;
+
+    // Create a source to play the buffer
+    ALuint source;
+    alGenSources(1, &source);
+    alSourcei(source, AL_BUFFER, buffer);
+    std::cout << "PLAYING" << std::endl;
+    // Play the sound
+    alSourcePlay(source);
+
+    // Wait for the sound to finish playing
+    ALint source_state;
+    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+    while (source_state == AL_PLAYING) {
+        alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+    }
+    std::cout << "AUDIO FINISHED " << std::endl;
+
+    // Clean up OpenAL resources
+    alDeleteSources(1, &source);
+    alDeleteBuffers(1, &buffer);
+    std::cout << "Resources deleted" << std::endl;
+
+    // Close OpenAL context and device
+    alcMakeContextCurrent(nullptr);
+    alcDestroyContext(context);
+    alcCloseDevice(device);
+    std::cout << "al context closed" << std::endl;
+  }
+  
   // Delete the generated sine wave data
   delete[] samples;
   std::cout << "samples deleted done" << std::endl;
