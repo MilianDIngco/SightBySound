@@ -129,23 +129,15 @@ int genSampleArray(short*& samples, int sample_rate, float duration) {
 
 void generateSines(short* samples, int sample_count, int n_pixel, int sample_rate, float* volumes, float* freqs) {
   // std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
-  float max = 0;
-    for (int i = 0; i < sample_count; i++) {
-      float sample = 0;
-      for (int n = 0; n < n_pixel; n++) {
-          sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
-      }
-      //samples[i] = static_cast<short>(sample/ n_pixel * 32767 );
-      samples[i] = static_cast<short>(sample * 32767);
-
-      // if (i % 100 == 0)
-      //   std::cout << std::endl;
-      // if (i % 100 == 0)
-        // std::cout << (static_cast<float>(i) / static_cast<float>(sample_count)) << ": " << samples[i] << std::endl;
+  for (int i = 0; i < sample_count; i++) {
+    float sample = 0;
+    for (int n = 0; n < n_pixel; n++) {
+        sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
     }
-
-  std::cout << "\nnum samples: " << sample_count << std::endl;
-} 
+    samples[i] = static_cast<short>((sample / n_pixel) * 32767 );
+    // samples[i] = static_cast<short>(sample * 32767);
+  } 
+}
 
 void generateHilbert(struct Pair hilbert[], int n_pixels) {
   for (int i = 0; i < n_pixels; i++) {
