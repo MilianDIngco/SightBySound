@@ -1,0 +1,6 @@
+*.o
+*.exe
+*.png
+*.wav
+settings.txt
+test/
