@@ -55,4 +55,4 @@ void saveWav(const std::string &filename, const std::vector<short> &samples, int
     file.close();
     std::cout << "WAV file saved: " << filename << std::endl;
 
-}
+} 

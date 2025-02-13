@@ -13,6 +13,7 @@
 #include <variant>
 #include "save_wav.h"
 #include <vector>
+#include <time.h>
 
 /*
 Naming Conventions
@@ -32,7 +33,13 @@ int SAMPLE_RATE = 22000; // number of samples per second
 std::string IMAGE_URL = "white.png"; // url to test image
 double VOLUME = 1; // 0 - 1
 bool PLAY_AUDIO = 1;
-
+bool CAP_FROM_CAMERA = 1;
+bool SAVE_IMG = 0;
+int CAM_1_INDEX = 0;
+int CAM_2_INDEX = 1;
+int temp_N_TESTS = 1;
+bool temp_DO_IMG_TEST = 0;
+bool temp_DO_SOUND_TEST = 0;
 
 struct Pair {
     int x;
@@ -49,6 +56,11 @@ struct Pair {
     }
 };
 
+/** Param: int index
+    Return: Pair
+    Takes an index from 0 - 2^(2 * ORDER) of the hilbert curve,
+    and returns the resulting coordinates as a Pair. 
+ */
 Pair getCoord(int index) {
     // bounds checking; Number of points is ( 2 ^ order ) ^ 2 since it's a square
     // array for now
@@ -114,6 +126,12 @@ Pair getCoord(int index) {
     return coord;
 }
 
+/** Param:  short*& samples - Empty array to be filled with audio samples
+            int sample_rate - # of samples / second
+            float duration  - Duration of time the generated audio clip will be
+    Return: int
+    Takes a pointer to an empty array of type short. 
+ */
 int genSampleArray(short*& samples, int sample_rate, float duration) {
     int sample_count = static_cast<int>(sample_rate * duration);
 
@@ -159,17 +177,42 @@ void generateVolumes(float volumes[], cv::Mat image, struct Pair hilbert[], int 
   }
 }
 
-void captureImage(cv::Mat& image, int image_width) {
-  image = cv::imread(IMAGE_URL);
-  // First, try just using a gray scale image
-  cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+void captureImage(cv::Mat& image, cv::VideoCapture cap, int image_width) {
+  // Grab image
+  if (CAP_FROM_CAMERA) 
+    cap >> image;
+  else
+    image = cv::imread(IMAGE_URL);
+
+  // save image
+  if (SAVE_IMG) 
+    cv::imwrite("in.png", image);
 
   // scale image down
   cv::Size scaled_size(image_width, image_width);
   cv::resize(image, image, scaled_size, 0, 0, cv::INTER_NEAREST);
 
+  // First, try just using a gray scale image
+  cv::cvtColor(image, image, cv::COLOR_BGR2GRAY);
+
   // save image
-  cv::imwrite("out.png", image);
+  if (SAVE_IMG) 
+    cv::imwrite("out.png", image);
+}
+
+template <typename Func, typename...Args>
+void timeFunction(int n_runs, const std::string test_name, Func func, Args... args) {
+  clock_t start, end;
+  start = clock();
+  for (int i = 0; i < n_runs; i++) {
+    func(args...);
+  }
+  end = clock();
+
+  double elapsed_time = double(end - start) / CLOCKS_PER_SEC;
+  double avg_time = elapsed_time / n_runs;
+
+  std::cout << test_name << " took " << elapsed_time << " secs to run " << n_runs << " tests.\nAverage time per test: " << avg_time << std::endl; 
 }
 
 int main(int argc, char** argv) {
@@ -229,6 +272,13 @@ int main(int argc, char** argv) {
       getValue("IMAGE_URL", IMAGE_URL);
       getValue("VOLUME", VOLUME);
       getValue("PLAY_AUDIO", PLAY_AUDIO);
+      getValue("CAP_FROM_CAMERA", CAP_FROM_CAMERA);
+      getValue("SAVE_IMG", SAVE_IMG);
+      getValue("CAM_1_INDEX", CAM_1_INDEX);
+      getValue("CAM_2_INDEX", CAM_2_INDEX);
+      getValue("temp_N_TESTS", temp_N_TESTS);
+      getValue("temp_DO_IMG_TEST", temp_DO_IMG_TEST);
+      getValue("temp_DO_SOUND_TEST", temp_DO_SOUND_TEST);
 
     } else {
       std::cout << "Settings file failed to open\n Default settings applied" << std::endl;
@@ -237,10 +287,15 @@ int main(int argc, char** argv) {
 
     settings.close();
 
-  // ------------------------------------------------Derive variables----------------
+  // ------------------------------------------------Derive variables, Open camera----------------   
     int image_width = std::pow(2, ORDER);
     int n_pixels = image_width * image_width;
+    cv::VideoCapture cap(CAM_1_INDEX);
 
+    if (!cap.isOpened()) {
+      std::cerr << "Error: Could not open webcam" << std::endl;
+      return -1;
+    }
   // ------------------------------------------------Generate hilbert pair array------------------------
     struct Pair hilbert[n_pixels];
     generateHilbert(hilbert, n_pixels);
@@ -260,7 +315,10 @@ int main(int argc, char** argv) {
   // ------------------------------------------------Capture image------------------------------------------------
     // Open jpg file
     cv::Mat image;
-    captureImage(image, image_width);
+
+    if (temp_N_TESTS > 0 && temp_DO_IMG_TEST) 
+      timeFunction(temp_N_TESTS, "Capture Image", captureImage, image, cap, image_width);
+    captureImage(image, cap, image_width);
     std::cout << "image done" << std::endl;
 
   // ------------------------------------------------Volume array------------------------------------------------
@@ -271,7 +329,10 @@ int main(int argc, char** argv) {
   // Generate Sine Wave and load into buffer
     short* samples = nullptr;
     int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
-    generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
+    if (temp_N_TESTS > 0 && temp_DO_SOUND_TEST)
+      timeFunction(temp_N_TESTS, "Generate samples", generateSines, samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
+    else
+      generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
     std::cout << "samples done" << std::endl;
 
   if (!PLAY_AUDIO) {
