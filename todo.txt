@@ -1,0 +1,10 @@
+Changes to make
+- Add function to append to .wav file. 
+    - With more repetitions and longer durations, the size of the vector will be much larger than it can hold. 
+    - If not playing audio, each time a sample array is generated, it should append that sample array to the .wav file. 
+- EITHER
+    - When appending, dampen the exit and intro of the two samples.
+        - Not doing this leads to sharp pops where the audio is appended
+    - Append clips that match up perfectly (unrealistic)
+- Edit generateSine function to only generate 1 period, then fill in the rest of the samples accordingly
+    - If the duration is less than 1 period, only generate that much

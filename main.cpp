@@ -37,9 +37,7 @@ bool CAP_FROM_CAMERA = 1;
 bool SAVE_IMG = 0;
 int CAM_1_INDEX = 0;
 int CAM_2_INDEX = 1;
-int temp_N_TESTS = 1;
-bool temp_DO_IMG_TEST = 0;
-bool temp_DO_SOUND_TEST = 0;
+int N_RUNS = 1;
 
 struct Pair {
     int x;
@@ -216,7 +214,7 @@ void timeFunction(int n_runs, const std::string test_name, Func func, Args... ar
 }
 
 int main(int argc, char** argv) {
-
+  
   // ------------------------------------------------Read in settings from text file----------------
     std::ifstream settings ("settings.txt");
     if (settings.is_open()) {
@@ -276,17 +274,13 @@ int main(int argc, char** argv) {
       getValue("SAVE_IMG", SAVE_IMG);
       getValue("CAM_1_INDEX", CAM_1_INDEX);
       getValue("CAM_2_INDEX", CAM_2_INDEX);
-      getValue("temp_N_TESTS", temp_N_TESTS);
-      getValue("temp_DO_IMG_TEST", temp_DO_IMG_TEST);
-      getValue("temp_DO_SOUND_TEST", temp_DO_SOUND_TEST);
+      getValue("N_RUNS", N_RUNS);
 
     } else {
       std::cout << "Settings file failed to open\n Default settings applied" << std::endl;
       // leave default settings
     }
-
     settings.close();
-
   // ------------------------------------------------Derive variables, Open camera----------------   
     int image_width = std::pow(2, ORDER);
     int n_pixels = image_width * image_width;
@@ -312,37 +306,24 @@ int main(int argc, char** argv) {
 
     std::cout << "sine waves done" << std::endl;
 
-  // ------------------------------------------------Capture image------------------------------------------------
-    // Open jpg file
-    cv::Mat image;
+  
+  cv::Mat image;
+  
+  short* samples = nullptr;
+  int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
+  
+  // Vector to hold samples for .wav file
+  std::vector<short> samples_vec(sample_count * N_RUNS);
 
-    if (temp_N_TESTS > 0 && temp_DO_IMG_TEST) 
-      timeFunction(temp_N_TESTS, "Capture Image", captureImage, image, cap, image_width);
-    captureImage(image, cap, image_width);
-    std::cout << "image done" << std::endl;
-
-  // ------------------------------------------------Volume array------------------------------------------------
-    float volumes[n_pixels];
-    generateVolumes(volumes, image, hilbert, n_pixels);
-    std::cout << "volume done" << std::endl;
-
-  // Generate Sine Wave and load into buffer
-    short* samples = nullptr;
-    int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
-    if (temp_N_TESTS > 0 && temp_DO_SOUND_TEST)
-      timeFunction(temp_N_TESTS, "Generate samples", generateSines, samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
-    else
-      generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
-    std::cout << "samples done" << std::endl;
-
-  if (!PLAY_AUDIO) {
-    std::vector<short> sample_v(samples, samples + sample_count);
-    saveWav("sound.wav", sample_v, SAMPLE_RATE, 1);
-  }
-
-  if (PLAY_AUDIO) {
-    // Initialize OpenAL and create a context
-      ALCdevice *device = alcOpenDevice(nullptr); // open default device
+  // Set OpenAL Variables
+    ALCdevice* device = nullptr;
+    ALCcontext *context = nullptr;
+    ALuint buffer;
+    ALuint source;
+    ALint source_state;
+    if (PLAY_AUDIO) {
+      // Open device
+      device = alcOpenDevice(nullptr); // open default device
       if (!device) {
           std::cerr << "Error: Could not open sound device." << std::endl;
           return -1;
@@ -350,38 +331,68 @@ int main(int argc, char** argv) {
 
       std::cout << "open al device done" << std::endl;
 
-      ALCcontext *context = alcCreateContext(device, nullptr);
-      if (!context || !alcMakeContextCurrent(context)) {
-          std::cerr << "Error: Could not create or set context." << std::endl;
-          if (context) alcDestroyContext(context);
-          alcCloseDevice(device);
-          return -1;
-      }
-    std::cout << "create al context done" << std::endl;
-    
-    // Create a buffer and fill it with the generated sine wave data
-    ALuint buffer;
-    alGenBuffers(1, &buffer);
-    alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
-    std::cout << "al buffers done" << std::endl;
+      // Create context
+      context = alcCreateContext(device, nullptr);
+        if (!context || !alcMakeContextCurrent(context)) {
+            std::cerr << "Error: Could not create or set context." << std::endl;
+            if (context) alcDestroyContext(context);
+            alcCloseDevice(device);
+            return -1;
+        }
+      std::cout << "create al context done" << std::endl;
 
-    // Create a source to play the buffer
-    ALuint source;
-    alGenSources(1, &source);
-    alSourcei(source, AL_BUFFER, buffer);
-    std::cout << "PLAYING" << std::endl;
-    // Play the sound
-    alSourcePlay(source);
-
-    // Wait for the sound to finish playing
-    ALint source_state;
-    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-    while (source_state == AL_PLAYING) {
-        alGetSourcei(source, AL_SOURCE_STATE, &source_state);
     }
-    std::cout << "AUDIO FINISHED " << std::endl;
 
-    // Clean up OpenAL resources
+
+  for (int iterations = 0; iterations < N_RUNS; iterations++) {
+    // ------------------------------------------------Capture image------------------------------------------------
+      captureImage(image, cap, image_width);
+      std::cout << "image done" << std::endl;
+
+    // ------------------------------------------------Volume array------------------------------------------------
+      float volumes[n_pixels];
+      generateVolumes(volumes, image, hilbert, n_pixels);
+      std::cout << "volume done" << std::endl;
+
+    // -----------------------------------------------Generate Sines--------------------------------------------
+      generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
+      std::cout << "samples done" << std::endl;
+
+    // ----------------------------------------------Play Audio-------------------------------------------
+    if (!PLAY_AUDIO) {
+      // Append to samples_vec
+      int last_index = iterations * sample_count;
+      if (last_index + sample_count <= samples_vec.size()) {
+        std::copy(samples, samples + sample_count, samples_vec.begin() + last_index);
+      } else {
+        std::cerr << "Error: Not enough space in samples_vec" << std::endl;
+      }
+      
+    } else {
+      // ------------------------------------------ Fill Buffers----------------------------------------
+      alGenBuffers(1, &buffer);
+      alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
+      std::cout << "al buffers done" << std::endl;
+
+      // -----------------------------------------Play Buffers--------------------------------------
+      alGenSources(1, &source);
+      alSourcei(source, AL_BUFFER, buffer);
+      std::cout << "PLAYING" << std::endl;
+      alSourcePlay(source);
+
+      // -----------------------------------------Wait till finished---------------------------------
+      alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+      while (source_state == AL_PLAYING) {
+          alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+      }
+      std::cout << "AUDIO FINISHED " << std::endl;
+    }
+  }
+  
+  if (!PLAY_AUDIO) {
+    saveWav("sound.wav", samples_vec, SAMPLE_RATE, 1);
+  } else {
+    // Clean up OpenAL Resources
     alDeleteSources(1, &source);
     alDeleteBuffers(1, &buffer);
     std::cout << "Resources deleted" << std::endl;
