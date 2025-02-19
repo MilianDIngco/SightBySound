@@ -31,6 +31,7 @@ double MAX_FREQ = 500; // highest frequency
 double DURATION = 5; // duration in seconds
 int SAMPLE_RATE = 22000; // number of samples per second
 std::string IMAGE_URL = "white.png"; // url to test image
+std::string WAV_FILENAME = "sound.wav";
 double VOLUME = 1; // 0 - 1
 bool PLAY_AUDIO = 1;
 bool CAP_FROM_CAMERA = 1;
@@ -268,6 +269,7 @@ int main(int argc, char** argv) {
       getValue("DURATION", DURATION);
       getValue("SAMPLE_RATE", SAMPLE_RATE);
       getValue("IMAGE_URL", IMAGE_URL);
+      getValue("WAV_FILENAME", WAV_FILENAME);
       getValue("VOLUME", VOLUME);
       getValue("PLAY_AUDIO", PLAY_AUDIO);
       getValue("CAP_FROM_CAMERA", CAP_FROM_CAMERA);
@@ -312,16 +314,15 @@ int main(int argc, char** argv) {
   short* samples = nullptr;
   int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
   
-  // Vector to hold samples for .wav file
-  std::vector<short> samples_vec(sample_count * N_RUNS);
-
   // Set OpenAL Variables
     ALCdevice* device = nullptr;
     ALCcontext *context = nullptr;
     ALuint buffer;
     ALuint source;
     ALint source_state;
-    if (PLAY_AUDIO) {
+
+
+    if (PLAY_AUDIO) { // IF PLAY AUDIO, SET UP OPENAL DEVICES 
       // Open device
       device = alcOpenDevice(nullptr); // open default device
       if (!device) {
@@ -341,6 +342,8 @@ int main(int argc, char** argv) {
         }
       std::cout << "create al context done" << std::endl;
 
+    } else { // IF NOT PLAY AUDIO, INSTANTIATE WAV FILE
+      instantiateWav(WAV_FILENAME, SAMPLE_RATE, 1);
     }
 
 
@@ -360,14 +363,9 @@ int main(int argc, char** argv) {
 
     // ----------------------------------------------Play Audio-------------------------------------------
     if (!PLAY_AUDIO) {
-      // Append to samples_vec
-      int last_index = iterations * sample_count;
-      if (last_index + sample_count <= samples_vec.size()) {
-        std::copy(samples, samples + sample_count, samples_vec.begin() + last_index);
-      } else {
-        std::cerr << "Error: Not enough space in samples_vec" << std::endl;
-      }
-      
+      // Copy samples to vector
+      std::vector<short> samples_v(samples, samples + sample_count);
+      appendWav(WAV_FILENAME, samples_v);
     } else {
       // ------------------------------------------ Fill Buffers----------------------------------------
       alGenBuffers(1, &buffer);
@@ -389,9 +387,7 @@ int main(int argc, char** argv) {
     }
   }
   
-  if (!PLAY_AUDIO) {
-    saveWav("sound.wav", samples_vec, SAMPLE_RATE, 1);
-  } else {
+  if (PLAY_AUDIO) {
     // Clean up OpenAL Resources
     alDeleteSources(1, &source);
     alDeleteBuffers(1, &buffer);
