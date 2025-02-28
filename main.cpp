@@ -14,6 +14,10 @@
 #include "save_wav.h"
 #include <vector>
 #include <time.h>
+#include <queue> // Image queue
+#include <semaphore.h>
+#include <mutex>
+#include <thread>
 
 /*
 Naming Conventions
@@ -23,6 +27,9 @@ methods use camelCase
 */
 
 using ValueType = std::variant<int, double, std::string, bool>;
+
+// -------------------------------- CHANGE THIS IF USING ORDER OF SIZE > 5
+constexpr size_t MAX_HILBERT_SIZE = 1024;
 
 // Setting variables
 int ORDER = 3; // order of hilbert curve, dimensions are determined from this
@@ -152,7 +159,7 @@ void generateSines(short* samples, int sample_count, int n_pixel, int sample_rat
         sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
     }
     samples[i] = static_cast<short>((sample / n_pixel) * 32767 );
-    // samples[i] = static_cast<short>(sample * 32767);
+    // std::cout << samples[i] << std::endl;
   } 
 }
 
@@ -213,6 +220,122 @@ void timeFunction(int n_runs, const std::string test_name, Func func, Args... ar
 
   std::cout << test_name << " took " << elapsed_time << " secs to run " << n_runs << " tests.\nAverage time per test: " << avg_time << std::endl; 
 }
+
+
+// -----------------------------------Thread Functions---------------------------------------
+
+void imageGen(cv::VideoCapture& cap, int image_width, std::queue<cv::Mat>& img_queue, sem_t& img_sem, std::mutex& img_mutex) {
+  const int MAX_IMAGES = 2;
+
+  cv::Mat image;
+  for (int i = 0; i < N_RUNS; i++) {
+    // Capture image
+    captureImage(image, cap, image_width);
+
+    // Push image pointer to queue
+    while (img_queue.size() >= MAX_IMAGES) {}
+    
+    // When room in queue
+    {
+      std::lock_guard<std::mutex> lock(img_mutex);
+      img_queue.push(image);
+      // std::cout << i << ": Pushed to image queue" << std::endl;
+    }
+    
+    // Post semaphore 
+    sem_post(&img_sem);
+  }
+
+
+}
+
+template <size_t N>
+void audioGen(std::queue<cv::Mat>& img_queue, sem_t& img_sem, std::mutex& img_mutex, int n_pixels, Pair (&hilbert)[N], float (&freqs)[N], ALuint& source, std::mutex& audio_mutex, sem_t& audio_sem) {
+
+  const int MAX_BUFFERS = 2;
+
+  cv::Mat image;
+  short* samples = nullptr;
+  int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
+  
+  for (int i = 0; i < N_RUNS; i++) {
+    // Wait until an image is available in the queue
+    sem_wait(&img_sem);
+    {
+      std::lock_guard<std::mutex> lock(img_mutex);
+      image = img_queue.front();
+      img_queue.pop();
+      // std::cout << i << ": Removed image from queue" << std::endl;
+    }
+
+    // Check if failed to get image
+
+    // Get volumes
+    float volumes[n_pixels];
+    generateVolumes(volumes, image, hilbert, n_pixels);
+
+    // Generate sines
+    generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
+
+    // Create buffer
+    ALuint buffer;
+    alGenBuffers(1, &buffer);
+    alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
+
+    // Push buffer onto queue
+    ALint buffers_queued;
+    alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
+    while (buffers_queued >= MAX_BUFFERS) {
+      alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);  
+    }
+
+    {
+      std::lock_guard<std::mutex> lock_guard(audio_mutex);
+      alSourceQueueBuffers(source, 1, &buffer);
+      std::cout << i << ": Pushed buffer onto queue" << std::endl;
+    }
+    sem_post(&audio_sem);
+  }
+
+  delete[] samples;
+
+}
+
+void audioPlay(sem_t& audio_sem, ALuint& source) {
+
+  for (int i = 0; i < N_RUNS; i++) {
+    sem_wait(&audio_sem);
+    
+    
+    ALint source_state;
+    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+    if (source_state != AL_PLAYING) {
+      // If the source isn't playing, start playback (or restart if needed)
+      alSourcePlay(source);
+    }
+    
+    alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+    while (source_state == AL_PLAYING) {
+        alGetSourcei(source, AL_SOURCE_STATE, &source_state);
+        std::cout << "PLAYING" << std::endl;
+    }
+
+    // Pop processed audio from queue
+    ALint processed;
+    alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
+    
+    while(processed > 0) {
+      ALuint processed_buffer;
+      alSourceUnqueueBuffers(source, 1, &processed_buffer);
+      alDeleteBuffers(1, &processed_buffer);
+      std::cout << i << ": Popped buffer from queue" << std::endl;
+      --processed;
+    }
+
+  }
+
+}
+
 
 int main(int argc, char** argv) {
   
@@ -293,11 +416,11 @@ int main(int argc, char** argv) {
       return -1;
     }
   // ------------------------------------------------Generate hilbert pair array------------------------
-    struct Pair hilbert[n_pixels];
+    struct Pair hilbert[MAX_HILBERT_SIZE];
     generateHilbert(hilbert, n_pixels);
     std::cout << "hilbert done" << std::endl;
   // ------------------------------------------------Generate frequency array------------------------------------------------
-    float freqs[n_pixels];
+    float freqs[MAX_HILBERT_SIZE];
     generateFrequencies(freqs, MIN_FREQ, MAX_FREQ, n_pixels);
     std::cout << "freq done" << std::endl;
 
@@ -311,98 +434,69 @@ int main(int argc, char** argv) {
   
   cv::Mat image;
   
-  short* samples = nullptr;
-  int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
-  
-  // Set OpenAL Variables
-    ALCdevice* device = nullptr;
-    ALCcontext *context = nullptr;
-    ALuint buffer;
-    ALuint source;
-    ALint source_state;
-
-
-    if (PLAY_AUDIO) { // IF PLAY AUDIO, SET UP OPENAL DEVICES 
-      // Open device
-      device = alcOpenDevice(nullptr); // open default device
-      if (!device) {
-          std::cerr << "Error: Could not open sound device." << std::endl;
-          return -1;
-      }
-
-      std::cout << "open al device done" << std::endl;
-
-      // Create context
-      context = alcCreateContext(device, nullptr);
-        if (!context || !alcMakeContextCurrent(context)) {
-            std::cerr << "Error: Could not create or set context." << std::endl;
-            if (context) alcDestroyContext(context);
-            alcCloseDevice(device);
-            return -1;
-        }
-      std::cout << "create al context done" << std::endl;
-
-    } else { // IF NOT PLAY AUDIO, INSTANTIATE WAV FILE
-      instantiateWav(WAV_FILENAME, SAMPLE_RATE, 1);
-    }
-
-
-  for (int iterations = 0; iterations < N_RUNS; iterations++) {
-    // ------------------------------------------------Capture image------------------------------------------------
-      captureImage(image, cap, image_width);
-      std::cout << "image done" << std::endl;
-
-    // ------------------------------------------------Volume array------------------------------------------------
-      float volumes[n_pixels];
-      generateVolumes(volumes, image, hilbert, n_pixels);
-      std::cout << "volume done" << std::endl;
-
-    // -----------------------------------------------Generate Sines--------------------------------------------
-      generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
-      std::cout << "samples done" << std::endl;
-
-    // ----------------------------------------------Play Audio-------------------------------------------
-    if (!PLAY_AUDIO) {
-      // Copy samples to vector
-      std::vector<short> samples_v(samples, samples + sample_count);
-      appendWav(WAV_FILENAME, samples_v);
-    } else { // PLAY_AUDIO
-      // ------------------------------------------ Fill Buffers----------------------------------------
-      alGenBuffers(1, &buffer);
-      alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
-      std::cout << "al buffers done" << std::endl;
-
-      // -----------------------------------------Play Buffers--------------------------------------
-      alGenSources(1, &source);
-      alSourcei(source, AL_BUFFER, buffer);
-      std::cout << "PLAYING" << std::endl;
-      alSourcePlay(source);
-
-      // -----------------------------------------Wait till finished---------------------------------
-      alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-      while (source_state == AL_PLAYING) {
-          alGetSourcei(source, AL_SOURCE_STATE, &source_state);
-      }
-      std::cout << "AUDIO FINISHED " << std::endl;
-    }
+  ALCdevice* device = nullptr;
+  ALCcontext *context = nullptr;
+  // Open device
+  device = alcOpenDevice(nullptr); // open default device
+  if (!device) {
+      std::cerr << "Error: Could not open sound device." << std::endl;
+      return -1;
   }
-  
-  if (PLAY_AUDIO) {
-    // Clean up OpenAL Resources
-    alDeleteSources(1, &source);
-    alDeleteBuffers(1, &buffer);
-    std::cout << "Resources deleted" << std::endl;
 
-    // Close OpenAL context and device
-    alcMakeContextCurrent(nullptr);
-    alcDestroyContext(context);
-    alcCloseDevice(device);
-    std::cout << "al context closed" << std::endl;
-  }
+  std::cout << "open al device done" << std::endl;
+
+  // Create context
+  context = alcCreateContext(device, nullptr);
+    if (!context || !alcMakeContextCurrent(context)) {
+        std::cerr << "Error: Could not create or set context." << std::endl;
+        if (context) alcDestroyContext(context);
+        alcCloseDevice(device);
+        return -1;
+    }
+  std::cout << "create al context done" << std::endl;
+
+  // Set source  
+  ALuint source;
+  alGenSources(1, &source);
+
+  std::mutex img_mutex;
+  std::mutex audio_mutex;
+
+  sem_t img_sem;
+  sem_t aud_sem;
+  sem_init(&img_sem, 0, 0);
+  sem_init(&aud_sem, 0, 0);
   
+  std::queue<cv::Mat> img_queue;
+
+  // Create camera capture thread
+  std::thread img_gen([&]() {
+    imageGen(cap, image_width, img_queue, img_sem, img_mutex);
+  });
+
+  // Create audio generator thread
+  std::thread aud_gen([&]() {
+    audioGen<MAX_HILBERT_SIZE>(img_queue, img_sem, img_mutex, n_pixels, hilbert, freqs, source, audio_mutex, aud_sem);
+  });
+    
+  // Create audio player thread
+  std::thread aud_ply([&]() {
+    audioPlay(aud_sem, source);
+  });
+  
+  img_gen.join();
+  aud_gen.join();
+  aud_ply.join();
+
   // Delete the generated sine wave data
-  delete[] samples;
-  std::cout << "samples deleted done" << std::endl;
-
+  sem_destroy(&img_sem);
+  sem_destroy(&aud_sem);
+  
+  alDeleteSources(1, &source);// Close OpenAL context and device
+  alcMakeContextCurrent(nullptr);
+  alcDestroyContext(context);
+  alcCloseDevice(device);
+  std::cout << "al context closed" << std::endl;
+  
   return 0;
 }
