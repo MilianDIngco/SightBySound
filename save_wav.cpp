@@ -120,14 +120,10 @@ void appendWav(const std::string &filename, const std::vector<short> &samples) {
     file.read(buffer.data(), 4);
     file_size = *reinterpret_cast<const uint32_t *>(buffer.data());
 
-    std::cout << "file_size: " << file_size << std::endl; 
-
     uint32_t new_data_size = samples.size() * sizeof(short);   
     uint32_t new_file_size = file_size + new_data_size;
     file.seekp(4, std::ios_base::beg);
     file.write(reinterpret_cast<const char *>(&new_file_size), 4);
-
-    std::cout << "new file size: " << new_file_size << std::endl;
 
     // get num_channels from file
     uint16_t num_channels;
@@ -136,15 +132,11 @@ void appendWav(const std::string &filename, const std::vector<short> &samples) {
     file.read(buffer.data(), 2);
     num_channels = *reinterpret_cast<const uint16_t *>(buffer.data());
 
-    std::cout << "# Channels: " << num_channels << std::endl;
-
     // get sample_rate from file
     uint32_t sample_rate;
     buffer.resize(4);
     file.read(buffer.data(), 4);
     sample_rate = *reinterpret_cast<const uint32_t *>(buffer.data());
-
-    std::cout << "sample rate: " << sample_rate << std::endl;
 
     // rewrite datasize
     uint32_t data_size;

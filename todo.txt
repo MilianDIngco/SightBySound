@@ -1,5 +1,5 @@
 Changes to make
-- Add function to append to .wav file. 
+[done] Add function to append to .wav file. 
     - With more repetitions and longer durations, the size of the vector will be much larger than it can hold. 
     - If not playing audio, each time a sample array is generated, it should append that sample array to the .wav file. 
 - EITHER

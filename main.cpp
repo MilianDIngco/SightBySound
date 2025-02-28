@@ -366,7 +366,7 @@ int main(int argc, char** argv) {
       // Copy samples to vector
       std::vector<short> samples_v(samples, samples + sample_count);
       appendWav(WAV_FILENAME, samples_v);
-    } else {
+    } else { // PLAY_AUDIO
       // ------------------------------------------ Fill Buffers----------------------------------------
       alGenBuffers(1, &buffer);
       alBufferData(buffer, AL_FORMAT_MONO16, samples, sample_count * sizeof(short), SAMPLE_RATE);
