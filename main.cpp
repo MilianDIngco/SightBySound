@@ -54,7 +54,10 @@ int CAM_1_INDEX = 0;
 int CAM_2_INDEX = 1;
 int N_RUNS = 1;
 bool PERIOD_OPTIMIZATION = false;
+double FADE_PERCENT = 0.01;
 bool DEBUG = false;
+double minDisparity = 0;
+int numDisparity = 16;
 
 struct Pair {
     int x;
@@ -162,12 +165,17 @@ int genSampleArray(short*& samples, int sample_rate, float duration) {
 
 void generateSines(short* samples, int sample_count, int n_pixel, int sample_rate, float* volumes, float* freqs) {
   // std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
+  int fade_samples = (int) ((double) sample_count * FADE_PERCENT);
+  std::cout << "Fade in first " << fade_samples << "samples" << std::endl;
+
   for (int i = 0; i < sample_count; i++) {
     float sample = 0;
     for (int n = 0; n < n_pixel; n++) {
         sample += std::sin(2.0f * M_PI * freqs[n] * static_cast<float>(i) / sample_rate) * volumes[n];
     } 
-    samples[i] = static_cast<short>((sample / n_pixel) * 32767 );
+    double fade_in = ((double) std::min(i, fade_samples)) / fade_samples;
+    double fade_out = ((double) std::min(sample_count - i, fade_samples)) / fade_samples;
+    samples[i] = static_cast<short>((sample / n_pixel) * 32767 * std::pow(fade_in, 2) * std::pow(fade_out, 2));
     // std::cout << samples[i] << std::endl;
   } 
 }
@@ -352,13 +360,14 @@ void audioPlay(sem_t& audio_sem, ALuint& source) {
         std::chrono::duration<double> elapsed = current_time - start_time;
         if (elapsed.count() >= DURATION){
           alSourcei(source, AL_LOOPING, AL_FALSE);
-          alSourceStop(source);
           break;
         }
       }
       alGetSourcei(source, AL_SOURCE_STATE, &source_state);
       // std::cout << "PLAYING" << std::endl;
     }
+
+    std::cout << "Audio ended" << std::endl;
 
     // Pop processed audio from queue
     ALint processed;
@@ -443,13 +452,18 @@ int main(int argc, char** argv) {
       getValue("CAM_2_INDEX", CAM_2_INDEX);
       getValue("N_RUNS", N_RUNS);
       getValue("PERIOD_OPTIMIZATION", PERIOD_OPTIMIZATION);
+      getValue("FADE_PERCENT", FADE_PERCENT);
+      getValue("minDisparity", minDisparity);
+      getValue("numDisparity", numDisparity);
 
     } else {
       std::cout << "Settings file failed to open\n Default settings applied" << std::endl;
       // leave default settings
     }
     settings.close();
-  // ------------------------------------------------Derive variables, Open camera----------------   
+    
+  // ------------------------------------------------Derive variables, Open camera-------------make
+  // --   
     int image_width = std::pow(2, ORDER);
     int n_pixels = image_width * image_width;
     cv::VideoCapture cap(CAM_1_INDEX);
