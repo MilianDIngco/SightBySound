@@ -39,6 +39,25 @@ int main(int argc, char** argv) {
     return 1;
   }
 
+  // Camera matrices
+  cv::Mat left_camera_matrix = (cv::Mat_<double>(3, 3) << 867.4390361465698, 0, 317.9791697706767,
+                                                          0, 864.0893210385751, 210.3069974974848,
+                                                          0, 0, 1);
+
+  cv::Mat left_distortion_coeffs = (cv::Mat_<double>(1, 5) << 0.2622121114918689, -1.136492077276323, 
+                                                              -0.009012060432466136, -0.008457245113531272, 
+                                                              1.700060607263798);
+
+  cv::Mat right_camera_matrix = (cv::Mat_<double>(3, 3) << 869.4844623454302, 0, 347.5857681840643,
+                                                          0, 869.7203390785392, 210.5008463947516,
+                                                          0, 0, 1);
+
+  cv::Mat right_distortion_coeffs = (cv::Mat_<double>(1, 5) << 0.2136811148693865, -0.9768909869007987,
+                                                              -0.009122562696865059, 0.005870254419487973,
+                                                              1.282784942218179);
+
+
+  // Capture images
   cv::Mat right_frame;
   cv::Mat left_frame;
 
@@ -48,6 +67,17 @@ int main(int argc, char** argv) {
   std::cout << "saved pictures" << std::endl; 
   cv::imwrite("left_cam.png", left_frame);
   cv::imwrite("right_cam.png", right_frame);
+
+  // Undistort images
+  cv::Mat right_undistorted;
+  cv::Mat left_undistorted;
+
+  cv::undistort(left_frame, left_undistorted, left_camera_matrix, left_distortion_coeffs);
+  cv::undistort(right_frame, right_undistorted, right_camera_matrix, right_distortion_coeffs);
+
+  std::cout << "saved undistorted" << std::endl;
+  cv::imwrite("left_undistorted.png", left_undistorted);
+  cv::imwrite("right_undistorted.png", right_undistorted);
 
   left.release();
   right.release();
