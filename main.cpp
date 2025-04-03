@@ -349,6 +349,7 @@ void audioPlay(sem_t& audio_sem, ALuint& source) {
     if (source_state != AL_PLAYING) {
       // If the source isn't playing, start playback (or restart if needed)
       alSourcePlay(source);
+      std::cout << "STOPPED NEEDED TO RESTART ---------------------------" << std::endl;
     }
 
     ChronoType start_time = std::chrono::high_resolution_clock::now();
@@ -461,7 +462,7 @@ int main(int argc, char** argv) {
       // leave default settings
     }
     settings.close();
-    
+
   // ------------------------------------------------Derive variables, Open camera-------------make
   // --   
     int image_width = std::pow(2, ORDER);
