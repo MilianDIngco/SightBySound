@@ -2,5 +2,7 @@
 *.exe
 *.png
 *.wav
-test/
 .vscode/
+test/calibrate
+test/stereo
+test/checker

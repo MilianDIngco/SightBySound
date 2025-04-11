@@ -11,7 +11,7 @@ OBJ = save_wav.o main.o
 all: $(TARGET)
 
 $(TARGET): $(OBJ)
-	$(CXX) -o $@ $^ $(LDFLAGS) -lopenal
+	$(CXX) -o $@ $^ $(LDFLAGS) -lopenal -pthread
 
 main.o: main.cpp
 	$(CXX) $(CXXFLAGS) -c main.cpp -o main.o 

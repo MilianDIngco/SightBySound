@@ -1,0 +1,74 @@
+Computer Stereo Vision
+Implementation of a real-time stereo vision algorithm on a cost-effective heterogeneous multicore platform
+By: Taki Eddine Saidi, Abdelhakim Khouas, Abbes Amira
+01 Nov 2022
+
+Steps for Stereo Vision
+1. Image Acquisition (fixed distance cameras capture images)
+2. Rectification (If they are lying on different planes, need to rectify) (i don't need to do this)
+3. Feature Detection (Identifying features in the images like edges, corners or patterns
+4. Stereo Matching (Finding the disparity of features in the two images)
+5. Depth Map Generation (Assigning depth values to each pixel in the image)
+6. 3D Reconstruction (Reconstructing a 3D model of the scene; unneccessary, only need depth map)
+
+Current Step
+3. Feature Detection
+
+Potential Tactics:
+1. Block Matching: comparing small blocks of pixels in the two images to find the best match
+2. Semi-Global Matching: Uses a dynamic programming approach to find optimal disparity map (more accurate than block matching but more expensive)
+3. Census Transform: Uses local feature descriptor to match corresponding points; fast and efficient
+4. Rank Transform: Uses rank of pixel intensities within a window to find correspondences; robust to noise and illumination changes
+
+Can't do:
+Semi-Global Matching
+
+Maybe:
+Block Matching
+
+Options:
+Census Transform
+Rank Transform
+
+First try: Rank Transform; its fast, efficient, and robust to differences in lighting which is important because of poor camera quality
+
+Idea:
+- what if i scaled down an image before processing it?
+Number of pixels = mn - dA
+where dA = km - kn + k^2
+
+m = 640
+n = 480
+k = 100
+
+%total left
+100 - 100k(m+n)/mn + k^2/mn
+
+100 - 100(k)(1120)/(307200) + (k^2)/(307200)
+
+100 - 11200000 / 307200 + 10000 / 307200
+
+63.574% of original pixels
+
+
+Algorithms to know: 
+SAD - sum of absolute differences
+
+
+Attempts to implement a "sparse rank based stereo matching algorithm"
+
+Proposed implementation tactics to improve performance
+- combining a sparse rank transform with a composition of 1-D and 2-D box-filtering algorithms to reduce computational complexity
+- using a Neon single instruction multiple data (SIMD) operation scheme to speed up rank computations and SAD correlation stages
+- use of circular buffers reduces memory utilization during rank computation
+- raw disparity map's quality improved by combining left-right consistency check, occlusion filling, and morphological closing operations
+
+Current approaches to real-time stereo vision systems
+- Global
+- Local
+
+This paper focuses more on LOCAL algorithms
+
+Questions: 
+- what is a disparity range of n pixels
+- 
