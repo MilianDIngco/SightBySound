@@ -20,6 +20,8 @@
 #include <mutex>
 #include <thread>
 #include <numeric>
+#include <cstdlib>
+#include <regex>
 
 /*
 Naming Conventions
@@ -63,7 +65,7 @@ struct Pair {
     int x;
     int y;
 
-    Pair() : x(0), y(0  ) {}
+    Pair() : x(0), y(0) {}
     Pair(int x, int y) : x(x), y(y) {}
     Pair(const Pair& p) : x(p.x), y(p.y) {}
 
@@ -166,7 +168,7 @@ int genSampleArray(short*& samples, int sample_rate, float duration) {
 void generateSines(short* samples, int sample_count, int n_pixel, int sample_rate, float* volumes, float* freqs) {
   // std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
   int fade_samples = (int) ((double) sample_count * FADE_PERCENT);
-  std::cout << "Fade in first " << fade_samples << "samples" << std::endl;
+  //std::cout << "Fade in first " << fade_samples << "samples" << std::endl;
 
   for (int i = 0; i < sample_count; i++) {
     float sample = 0;
@@ -349,7 +351,7 @@ void audioPlay(sem_t& audio_sem, ALuint& source) {
     if (source_state != AL_PLAYING) {
       // If the source isn't playing, start playback (or restart if needed)
       alSourcePlay(source);
-      std::cout << "STOPPED NEEDED TO RESTART ---------------------------" << std::endl;
+      //std::cout << "STOPPED NEEDED TO RESTART ---------------------------" << std::endl;
     }
 
     ChronoType start_time = std::chrono::high_resolution_clock::now();
@@ -388,6 +390,30 @@ void audioPlay(sem_t& audio_sem, ALuint& source) {
 
 }
 
+int get_index(const std::string& by_path) {
+  std::string readlink = "readlink -f " + by_path;
+  char buffer[128];
+  std::string result;
+
+  // Run readlink command in subprocess
+  FILE* pipe = popen(readlink.c_str(), "r");
+  if (!pipe) return -1;
+  while(fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      result += buffer;
+  }
+
+  pclose(pipe);
+
+  result.erase(result.find_last_not_of(" \n\r\t") + 1);
+
+  // Get the last number from the string
+  std::regex numRegex(R"(\d+$)");  // Matches digits at the end of the string
+  std::smatch match;
+  if (std::regex_search(result, match, numRegex)) {
+      return std::stoi(match.str());  // Convert matched string to int
+  }
+  return -1;  // Return -1 if no number is found
+}
 
 int main(int argc, char** argv) {
   
@@ -467,7 +493,13 @@ int main(int argc, char** argv) {
   // --   
     int image_width = std::pow(2, ORDER);
     int n_pixels = image_width * image_width;
-    cv::VideoCapture cap(CAM_1_INDEX);
+
+    std::string right_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.5:1.0-video-index0";
+    std::string left_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.3:1.0-video-index0";
+    
+    int left_camera_index = get_index(left_path);
+
+    cv::VideoCapture cap(left_camera_index);
 
     if (!cap.isOpened()) {
       std::cerr << "Error: Could not open webcam" << std::endl;

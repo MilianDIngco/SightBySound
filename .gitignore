@@ -3,3 +3,6 @@
 *.png
 *.wav
 .vscode/
+test/calibrate
+test/stereo
+test/checker

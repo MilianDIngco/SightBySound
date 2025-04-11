@@ -3,85 +3,136 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-/*
-Left Camera
-Camera Matrix:
-[867.4390361465698, 0, 317.9791697706767;
- 0, 864.0893210385751, 210.3069974974848;
- 0, 0, 1]
-Distortion Coefficients:
-[0.2622121114918689, -1.136492077276323, -0.009012060432466136, -0.008457245113531272, 1.700060607263798]
+#include <cstdlib>
+#include <regex>
 
-Right Camera
-Camera Matrix:
-[869.4844623454302, 0, 347.5857681840643;
- 0, 869.7203390785392, 210.5008463947516;
- 0, 0, 1]
-Distortion Coefficients:
-[0.2136811148693865, -0.9768909869007987, -0.009122562696865059, 0.005870254419487973, 1.282784942218179]
+int get_index(const std::string& by_path) {
+  std::string readlink = "readlink -f " + by_path;
+  char buffer[128];
+  std::string result;
 
-*/
+  // Run readlink command in subprocess
+  FILE* pipe = popen(readlink.c_str(), "r");
+  if (!pipe) return -1;
+  while(fgets(buffer, sizeof(buffer), pipe) != nullptr) {
+      result += buffer;
+  }
+
+  pclose(pipe);
+
+  result.erase(result.find_last_not_of(" \n\r\t") + 1);
+
+  // Get the last number from the string
+  std::regex numRegex(R"(\d+$)");  // Matches digits at the end of the string
+  std::smatch match;
+  if (std::regex_search(result, match, numRegex)) {
+      return std::stoi(match.str());  // Convert matched string to int
+  }
+  return -1;  // Return -1 if no number is found
+}
 
 int main(int argc, char** argv) {
 
-  std::this_thread::sleep_for(std::chrono::seconds(2));
-
-  std::string right_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.5:1.0-video-index0";
-  std::string left_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.4:1.0-video-index0";
-  cv::VideoCapture left(left_path);
-  if (!left.isOpened()) {
-    std::cerr << "ERROR: Failed to open left camera at path " << left_path << std::endl;
-    return 1; 
-  }
-  cv::VideoCapture right(right_path);
-  if (!right.isOpened()) {
-    std::cerr << "ERROR: Failed to open right camera at path " << right_path << std::endl;
+  if (argc < 5) {
+    std::cerr << "Open which camera data .yml file you want to open, numDisparities, and blockSize, and numRuns" << std::endl;
     return 1;
   }
 
-  // Camera matrices
-  cv::Mat left_camera_matrix = (cv::Mat_<double>(3, 3) << 867.4390361465698, 0, 317.9791697706767,
-                                                          0, 864.0893210385751, 210.3069974974848,
-                                                          0, 0, 1);
+  // Open cameras
+  std::this_thread::sleep_for(std::chrono::seconds(2));
 
-  cv::Mat left_distortion_coeffs = (cv::Mat_<double>(1, 5) << 0.2622121114918689, -1.136492077276323, 
-                                                              -0.009012060432466136, -0.008457245113531272, 
-                                                              1.700060607263798);
+  std::string right_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.5:1.0-video-index0";
+  std::string left_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.3:1.0-video-index0";
+  
+  int left_camera_index = get_index(left_path);
+  cv::VideoCapture left(left_camera_index);
+  if (!left.isOpened()) {
+      std::cerr << "ERROR: Failed to open left camera at path " << left_path << std::endl;
+      return 1; 
+  }
+  std::cout << "Opening camera at index " << left_camera_index << std::endl;
 
-  cv::Mat right_camera_matrix = (cv::Mat_<double>(3, 3) << 869.4844623454302, 0, 347.5857681840643,
-                                                          0, 869.7203390785392, 210.5008463947516,
-                                                          0, 0, 1);
+  int right_camera_index = get_index(right_path);
+  cv::VideoCapture right(right_camera_index);
+  if (!right.isOpened()) {
+      std::cerr << "ERROR: Failed to open right camera at path " << right_path << std::endl;
+      return 1;
+  }
+  std::cout << "Opening camera at index " << right_camera_index << std::endl;
 
-  cv::Mat right_distortion_coeffs = (cv::Mat_<double>(1, 5) << 0.2136811148693865, -0.9768909869007987,
-                                                              -0.009122562696865059, 0.005870254419487973,
-                                                              1.282784942218179);
+  // Open filestorage 
+  std::string filename = argv[1];
+  std::cout << "Opening filestorage at " << filename << std::endl;
+  cv::FileStorage fs(filename, cv::FileStorage::READ);
 
+  // Get variablles needed for remap()
+  // source img, destination img, map1, map2
+  std::cout << "Grabbing variables" << std::endl;
+  cv::Mat left_map1, left_map2, right_map1, right_map2;
+  fs["left_map1"] >> left_map1;
+  fs["left_map2"] >> left_map2;
+  fs["right_map1"] >> right_map1;
+  fs["right_map2"] >> right_map2;
 
   // Capture images
-  cv::Mat right_frame;
-  cv::Mat left_frame;
+  std::cout << "Capturing images" << std::endl;
+  cv::Mat right_frame, right_rectified;
+  cv::Mat left_frame, left_rectified;
 
-  left >> left_frame;
-  right >> right_frame;
+  // cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create(numDisparities, blockSize);
+  cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create();
+  stereo->setBlockSize(15);            // 9 to 21 (must be odd)
+  stereo->setNumDisparities(96);       // must be divisible by 16
+  stereo->setPreFilterCap(31);
+  stereo->setMinDisparity(0);
+  stereo->setTextureThreshold(5);
+  stereo->setUniquenessRatio(10);
+  stereo->setSpeckleWindowSize(100);
+  stereo->setSpeckleRange(32);
+  stereo->setDisp12MaxDiff(1);
 
-  std::cout << "saved pictures" << std::endl; 
-  cv::imwrite("left_cam.png", left_frame);
-  cv::imwrite("right_cam.png", right_frame);
+  for(int i = 0; i < std::stoi(argv[4]); i++) {
+    left >> left_frame;
+    right >> right_frame;
 
-  // Undistort images
-  cv::Mat right_undistorted;
-  cv::Mat left_undistorted;
+    std::cout << "Rectifying images" << std::endl;
+    cv::remap(left_frame, left_rectified, left_map1, left_map2, cv::INTER_LINEAR);
+    cv::remap(right_frame, right_rectified, right_map1, right_map2, cv::INTER_LINEAR);
 
-  cv::undistort(left_frame, left_undistorted, left_camera_matrix, left_distortion_coeffs);
-  cv::undistort(right_frame, right_undistorted, right_camera_matrix, right_distortion_coeffs);
+    // See images in /test/view/rectified/ ___.jpg
+    std::cout << "Storing images" << std::endl;
+    // cv::imwrite("view/rectified/left_og.jpg", left_frame);
+    cv::imwrite("view/rectified/left_rect.jpg", left_rectified);
+    // cv::imwrite("view/rectified/right_og.jpg", right_frame);
+    // cv::imwrite("view/rectified/right_rect.jpg", right_rectified);
 
-  std::cout << "saved undistorted" << std::endl;
-  cv::imwrite("left_undistorted.png", left_undistorted);
-  cv::imwrite("right_undistorted.png", right_undistorted);
+    std::cout << "Converting images to grayscale" << std::endl;
+    cv::cvtColor(left_rectified, left_rectified, cv::COLOR_BGR2GRAY);
+    cv::cvtColor(right_rectified, right_rectified, cv::COLOR_BGR2GRAY);
+
+    std::cout << "Stereo Block Matching" << std::endl;
+    cv::Mat disparity;
+    int numDisparities = std::stoi(argv[2]);
+    int blockSize = std::stoi(argv[3]);
+    stereo->compute(left_rectified, right_rectified, disparity);
+
+    std::cout << "Storing disparity" << std::endl;
+    // cv::imwrite("view/stereoBM/disparity.jpg", disparity);
+
+    std::cout << "Normalize to depth map" << std::endl;
+    cv::Mat depth;
+    disparity.convertTo(depth, CV_8U, 255.0 / (numDisparities * 16));
+
+    std::cout << "Saving depth map" << std::endl;
+    cv::imwrite("view/stereoBM/depth.jpg", depth);
+  }
+
+  
 
   left.release();
   right.release();
-  
+
+  std::cout << "Program done" << std::endl;
 	return 0;
 }
 	// ============== OPEN CAMERAS =================
