@@ -5,8 +5,9 @@
 #include <chrono>
 #include <cstdlib>
 #include <regex>
+#include "function_timer.h"
 
-int get_index(const std::string& by_path) {
+int get_camera_index(const std::string& by_path) {
   std::string readlink = "readlink -f " + by_path;
   char buffer[128];
   std::string result;
@@ -31,34 +32,118 @@ int get_index(const std::string& by_path) {
   return -1;  // Return -1 if no number is found
 }
 
-int main(int argc, char** argv) {
+int get_left_bound(cv::Mat img) {
+  // scan from left to right
+  int left_bounds = 0;
+  bool found = false;
+  for (int i = 0; i < img.size().width && !found; i++) {
+    for (int n = 0; n < img.size().height; n++) {
+      if (img.at<uchar>(n, i) != 0) {
+        left_bounds = i;
+        found = true;
+        break;
+      }
+    }
+  }
 
+  return left_bounds;
+}
+
+int get_right_bound(cv::Mat img) {
+  // scan from left to right
+  int right_bounds = 0;
+  bool found = false;
+  for (int i = img.size().width - 1; i > 0 && !found; i--) {
+    for (int n = img.size().height - 1; n > 0; n--) {
+      if (img.at<uchar>(n, i) != 0) {
+        right_bounds = i;
+        found = true;
+        break;
+      }
+    }
+  }
+
+  return right_bounds;
+}
+
+int get_top_bound(cv::Mat img) {
+  // scan from left to right
+  int top_bounds = 0;
+  bool found = false;
+  for (int i = 0; i < img.size().height && !found; i++) {
+    for (int n = 0; n < img.size().width; n++) {
+      if (img.at<uchar>(i, n) != 0) {
+        top_bounds = i;
+        found = true;
+        break;
+      }
+    }
+  }
+
+  return top_bounds;
+}
+
+int get_bot_bound(cv::Mat img) {
+  // scan from left to right
+  int bot_bounds = 0;
+  bool found = false;
+  for (int i = img.size().height - 1; i > 0 && !found; i--) {
+    for (int n = img.size().width - 1; n > 0; n--) {
+      if (img.at<uchar>(i, n) != 0) {
+        bot_bounds = i;
+        found = true;
+        break;
+      }
+    }
+  }
+
+  return bot_bounds;
+}
+
+bool capture_image(cv::VideoCapture& cap, cv::Mat& frame, int max_attempts = 3) {
+  for (int i = 0; i < max_attempts; i++) {
+    if (cap.read(frame)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+bool open_camera(cv::VideoCapture& cap, std::string path) {
+  int camera_index = get_camera_index(path);
+  if (!cap.open(camera_index, cv::CAP_V4L2)) {
+    std::cerr << "ERROR: Failed to open camera at path " << path << std::endl;
+    return false;
+  }
+  cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
+  return true;
+}
+
+int main(int argc, char** argv) {
   if (argc < 5) {
-    std::cerr << "Open which camera data .yml file you want to open, numDisparities, and blockSize, and numRuns" << std::endl;
+    std::cerr << "Open which camera data .yml file you want to open, numDisparities, and blockSize, and numRuns, and image_width" << std::endl;
     return 1;
   }
+
+  std::cout << "Scaling down to image size of " << std::stoi(argv[5]) << std::endl;
+  int image_width = std::stoi(argv[5]);
 
   // Open cameras
   std::this_thread::sleep_for(std::chrono::seconds(2));
 
-  std::string right_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.5:1.0-video-index0";
-  std::string left_path = "/dev/v4l/by-path/platform-3f980000.usb-usb-0:1.3:1.0-video-index0";
+  std::string right_path = " /dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0";
+  std::string left_path = "/dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0";
   
-  int left_camera_index = get_index(left_path);
-  cv::VideoCapture left(left_camera_index);
-  if (!left.isOpened()) {
-      std::cerr << "ERROR: Failed to open left camera at path " << left_path << std::endl;
-      return 1; 
-  }
-  std::cout << "Opening camera at index " << left_camera_index << std::endl;
+  cv::VideoCapture left;
+  std::cout << "Opening left camera" << std::endl;
+  if (!open_camera(left, left_path))
+    return 1;
 
-  int right_camera_index = get_index(right_path);
-  cv::VideoCapture right(right_camera_index);
-  if (!right.isOpened()) {
-      std::cerr << "ERROR: Failed to open right camera at path " << right_path << std::endl;
-      return 1;
-  }
-  std::cout << "Opening camera at index " << right_camera_index << std::endl;
+  cv::VideoCapture right;
+  std::cout << "Opening right camera" << std::endl;
+  if (!open_camera(right, right_path))
+    return 1;
 
   // Open filestorage 
   std::string filename = argv[1];
@@ -79,21 +164,58 @@ int main(int argc, char** argv) {
   cv::Mat right_frame, right_rectified;
   cv::Mat left_frame, left_rectified;
 
-  // cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create(numDisparities, blockSize);
+  // SET STEREOBM PARAMS
+  int numDisparities = std::stoi(argv[2]);
+  int blockSize = std::stoi(argv[3]);
   cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create();
-  stereo->setBlockSize(15);            // 9 to 21 (must be odd)
-  stereo->setNumDisparities(96);       // must be divisible by 16
+  stereo->setBlockSize(blockSize);         // 9 to 21 (must be odd)
+  stereo->setNumDisparities(numDisparities);       // must be divisible by 16
   stereo->setPreFilterCap(31);
   stereo->setMinDisparity(0);
   stereo->setTextureThreshold(5);
-  stereo->setUniquenessRatio(10);
-  stereo->setSpeckleWindowSize(100);
+  stereo->setUniquenessRatio(0);
+  stereo->setSpeckleWindowSize(50);
   stereo->setSpeckleRange(32);
   stereo->setDisp12MaxDiff(1);
 
+  // int min_width = 640;
+  // int max_width = 0;
+  // int min_height = 480;
+  // int max_height = 0;
+
   for(int i = 0; i < std::stoi(argv[4]); i++) {
-    left >> left_frame;
-    right >> right_frame;
+    std::cout << "Capturing frame" << std::endl;
+    std::this_thread::sleep_for(std::chrono::seconds(1));
+    
+    // TRY TO CAPTURE IMAGE
+    if (!capture_image(left, left_frame) || !capture_image(right, right_frame)) {
+        std::cerr << "Frame read timed out or failed!" << std::endl;
+
+        std::cerr << "Trying to reopen cameras" << std::endl;
+        left.release();
+        if (!open_camera(left, left_path)) {
+          std::cerr << "Failed to reopen left camera" << std::endl;
+          return -1;
+        }
+
+        right.release();
+        if (!open_camera(right, right_path)) {
+          std::cerr << "Failed to reopen right camera" << std::endl;
+          return -1;
+        }
+
+        continue;
+    }
+
+    if (left_frame.empty() || right_frame.empty()) {
+      std::cout << "Empty frame, skipping" << std::endl;
+      continue;
+    }
+
+    if (left_frame.size() != right_frame.size()) {
+      std::cout << "Frame size mismatch" << std::endl;
+      continue;
+    }
 
     std::cout << "Rectifying images" << std::endl;
     cv::remap(left_frame, left_rectified, left_map1, left_map2, cv::INTER_LINEAR);
@@ -101,10 +223,8 @@ int main(int argc, char** argv) {
 
     // See images in /test/view/rectified/ ___.jpg
     std::cout << "Storing images" << std::endl;
-    // cv::imwrite("view/rectified/left_og.jpg", left_frame);
+    //cv::imwrite("view/rectified/left_og.jpg", left_frame);
     cv::imwrite("view/rectified/left_rect.jpg", left_rectified);
-    // cv::imwrite("view/rectified/right_og.jpg", right_frame);
-    // cv::imwrite("view/rectified/right_rect.jpg", right_rectified);
 
     std::cout << "Converting images to grayscale" << std::endl;
     cv::cvtColor(left_rectified, left_rectified, cv::COLOR_BGR2GRAY);
@@ -112,22 +232,43 @@ int main(int argc, char** argv) {
 
     std::cout << "Stereo Block Matching" << std::endl;
     cv::Mat disparity;
-    int numDisparities = std::stoi(argv[2]);
-    int blockSize = std::stoi(argv[3]);
     stereo->compute(left_rectified, right_rectified, disparity);
-
-    std::cout << "Storing disparity" << std::endl;
-    // cv::imwrite("view/stereoBM/disparity.jpg", disparity);
 
     std::cout << "Normalize to depth map" << std::endl;
     cv::Mat depth;
     disparity.convertTo(depth, CV_8U, 255.0 / (numDisparities * 16));
 
+    // std::cout << "Cropping depth map" << std::endl;
+    // std::cout << "Height: " << depth.size().height << ", Width: " << depth.size().width << std::endl;
+    // int left = get_left_bound(depth);
+    // int right = get_right_bound(depth);
+    // int top = get_top_bound(depth);
+    // int bot = get_bot_bound(depth);
+
+    // min_width = (left < min_width) ? left : min_width;
+    // max_width = (right > max_width) ? right : max_width;
+    // min_height = (top < min_height) ? top : min_height;
+    // max_height = (bot > max_height) ? bot : max_height;
+
+    // std::cout << "Left: " << left << ", Right: " << right << std::endl;
+    // std::cout << "Top: " << top << ", Bottom: " << bot << std::endl;
+    depth = depth(cv::Range(7, 472), cv::Range(102, 632));
+
     std::cout << "Saving depth map" << std::endl;
     cv::imwrite("view/stereoBM/depth.jpg", depth);
+
+    std::cout << "Scaling down depth map" << std::endl;
+    cv::Size scaled_size(image_width, image_width);
+    cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_NEAREST);
+
+    std::cout << "Saving scaled depth map" << std::endl;
+    //cv::imwrite("view/stereoBM/scaled_depth.jpg", depth);
+
+    std::cout << "Finished " << i << std::endl;
   }
 
-  
+  // std::cout << "Width bounds: (" << min_width << ", " << max_width << ")" << std::endl;
+  // std::cout << "Height bounds: (" << min_height << ", " << max_height << ")" << std::endl;
 
   left.release();
   right.release();
@@ -135,124 +276,3 @@ int main(int argc, char** argv) {
   std::cout << "Program done" << std::endl;
 	return 0;
 }
-	// ============== OPEN CAMERAS =================
-  // const int MAX_CAMERAS = 20;
-  // cv::VideoCapture cap;
-	// int index = 0;
-  //   while (index < MAX_CAMERAS && !cap.isOpened()) {
-  //       cap.open(index++);
-  //   }
-
-	// if (!cap.isOpened()) {
-	// 	std::cerr << "Error: Could not open webcam" << std::endl;
-	// 	return -1;
-	// } else {
-	// 	std::cout << "Opened camera index " << index << std::endl;
-	// }
-
-	// cv::VideoCapture cap2;
-	// while(index < MAX_CAMERAS && !cap2.isOpened()) {
-	// 	cap2.open(index++);
-	// }
-
-	// if (!cap2.isOpened()) {
-	// 	std::cerr << "Error: Could not open second webcam" << std::endl;
-	// 	return -1;
-	// } else {
-	// 	std::cout << "Opened camera index " << index << std::endl;
-	// }
-
-
-  // if (argc < 3) {
-  //   std::cerr << "ERROR: Enter camera indices for the left and right cameras." << std::endl;
-  //   return 1;
-  // }
-  
-  // int left_index = std::stoi(argv[1]);
-  // cv::VideoCapture left(left_index);  
-
-  // if (!left.isOpened()) {
-  //   std::cerr << "ERROR: Left camera failed to open at index " << left_index << std::endl;
-  //   return 1;
-  // }
-
-  // int right_index = std::stoi(argv[2]);
-	// cv::VideoCapture right(right_index);
-
-  // if (!right.isOpened()) {
-  //   std::cerr << "ERROR: Right camera failed to open at index " << right_index << std::endl;
-  //   return 1;
-  // }
-
-	// cv::Mat frame_l;
-	// cv::Mat frame_r;
-
-	// left >> frame_l;
-	// right >> frame_r;
-
-  // // bool left_found = findChessboardCorners( frame_l, boardSize, ptvec, CALIB_CB_ADAPTIVE_THRESH );
-	
-	// cv::cvtColor(frame_l, frame_l, cv::COLOR_BGR2GRAY);
-	// cv::cvtColor(frame_r, frame_r, cv::COLOR_BGR2GRAY);
-	
-	// cv::imwrite("out.png", frame_r);
-
-	// cap.release();
-
-	// cv::destroyAllWindows();
-
-
-
-/*
-    cv::VideoCapture cap(CAM_1_INDEX);
-    cv::VideoCapture cap1(CAM_2_INDEX);
-  
-    if (!cap.isOpened()) {
-      std::cerr << "Error: Could not open webcam" << std::endl;
-      return -1;
-    }
-  
-    if (!cap1.isOpened()) {
-      std::cerr << "Error: Could not open second webcam" << std::endl;
-      return -1;
-    }
-  
-    cv::Mat frame;
-    cv::Mat frame2;
-
-    cap >> frame;
-    cap1 >> frame2;
-    
-    cv::cvtColor(frame, frame, cv::COLOR_BGR2GRAY);
-    cv::cvtColor(frame2, frame2, cv::COLOR_BGR2GRAY);
-
-    cv::imwrite("left.png", frame);
-    cv::imwrite("right.png", frame2);
-  
-    cv::Ptr<cv::StereoBM> stereo = cv::StereoBM::create();
-    cv::Mat disp, disparity; 
-    stereo->compute(frame, frame2, disp);
-  
-    disp.convertTo(disparity, CV_32F, 1.0);
-    disparity = (disparity / 16.0f - (float) minDisparity) / (float) numDisparity;
-    // std::cout << disparity << std::endl;
-    
-    double min, max;
-    cv::minMaxLoc(disparity, &min, &max);
-    std::cout << "Min: " << min << " Max: " << max << std::endl;
-
-    disparity = 256 * (disparity - min) / (max - min);
-
-    cv::minMaxLoc(disparity, &min, &max);
-    std::cout << "Min: " << min << " Max: " << max << std::endl;
-
-    cv::imwrite("out.png", disparity);
-  
-    cap.release();
-    cap1.release();
-
-    return 0;*/
-
-
-
-  

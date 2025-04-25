@@ -117,7 +117,6 @@ int main(int argc, char** argv) {
             continue;
         }
 
-
         // See images in /test/view/left.jpg
         cv::imwrite("view/left.png", left_frame);
         cv::imwrite("view/right.png", right_frame);

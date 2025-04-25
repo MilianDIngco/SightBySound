@@ -2,6 +2,7 @@
 #include <fstream>
 #include <iostream>
 #include <climits>
+#include <cstdint>
 
 /*
 WAV file header wikipedia

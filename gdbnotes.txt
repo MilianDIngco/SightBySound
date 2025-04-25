@@ -1,0 +1,26 @@
+Need to compile with -g flag to include debug info
+
+break main
+break class::method
+break line #
+
+Run
+
+next or n : execute line
+step or s : step into functions
+continue or c : resume until next breakpoint or end
+finish : run till current function returns
+print _var_
+print object.field
+display var : automatically prints var every time you step
+info locals : shows all local variables
+info args : shows function arguments
+info threads : list all active threads w/ ids
+info breakpoints
+delete breakpoints
+watch var : stop when a variable changes
+backtrace : see if it crashes
+thread # : switch context to thread id
+break worker : when each thread enters its worker, gdb will break
+thread apply all <command> : runs a command for all threads
+where : what line youre on

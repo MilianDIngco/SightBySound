@@ -1,7 +1,12 @@
 # Variables for compiler and flags
 CXX = g++
-CXXFLAGS = -std=c++20 $(shell pkg-config --cflags opencv4)
+CXXFLAGS = -std=c++20 $(shell pkg-config --cflags opencv4) -Wno-deprecated-enum-enum-conversion
 LDFLAGS = $(shell pkg-config --libs opencv4)
+DEBUG =? 0
+
+ifeq ($(DEBUG), 1)
+	CXXFLAGS += -g
+endif
 
 TARGET = main
 
