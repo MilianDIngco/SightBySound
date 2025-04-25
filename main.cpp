@@ -26,6 +26,8 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include "FunctionTimer/functiontimer.hpp"
+#include <cassert>
 
 /*
 Naming Conventions
@@ -193,8 +195,7 @@ int genSampleArray(short *&samples, int sample_rate, float duration) {
 
 void generateSines(short *samples, int sample_count, int n_pixel,
                    int sample_rate, float *volumes, float *freqs) {
-  // std::cout << sample_count << " " << n_pixel << " " << sample_count *
-  // n_pixel << std::endl;
+  //std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
   int fade_samples = (int)((double)sample_count * FADE_PERCENT);
   // std::cout << "Fade in first " << fade_samples << "samples" << std::endl;
 
@@ -339,7 +340,16 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
 
   std::cout << "image gen thread start" << std::endl;
 
+  #ifndef NDEBUG
+    FunctionTimer imageGenFT;
+  #endif
+
   for (int i = 0; i < N_RUNS; i++) {
+
+    #ifndef NDEBUG
+      imageGenFT.start_clock();
+    #endif
+
     // Capture image
     if (!captureImage(left_frame, right_frame, left, right)) {
       std::cerr << "ERROR: Failed to capture images" << std::endl;
@@ -378,7 +388,15 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
 
     // Post semaphore
     sem_post(&lr_img_sem);
+
+    #ifndef NDEBUG
+      imageGenFT.stop_clock();
+    #endif // !NDEBUG
   }
+  
+  #ifndef NDEBUG
+    imageGenFT.print_average("ImageGen");
+  #endif // !NDEBUG
 
   std::cout << "image gen thread end" << std::endl;
 }
@@ -392,7 +410,17 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
 
   cv::Mat left_frame, right_frame, disparity, depth, previous_depth;
 
+  #ifndef NDEBUG
+    FunctionTimer depthGenFT;
+  #endif // !NDEBUG
+
   for (int i = 0; i < N_RUNS; i++) {
+    
+    #ifndef NDEBUG
+      depthGenFT.start_clock();
+    #endif // !NDEBUG
+
+
     // wait until left and right images are available in the queue
     sem_wait(&lr_img_sem);
     {
@@ -455,8 +483,17 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
     // Post semaphore
     sem_post(&img_sem);
 
+    #ifndef NDEBUG
+      depthGenFT.stop_clock();
+    #endif // !NDEBUG
+        
+
     // save image for debug
   }
+
+  #ifndef NDEBUG
+    depthGenFT.print_average("Depth Gen");
+  #endif // !NDEBUG
 
   std::cout << "depth gen thread end" << std::endl;
 }
@@ -475,7 +512,16 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
 
   std::cout << "audio gen thread start" << std::endl;
 
+  #ifndef NDEBUG
+    FunctionTimer audioGenFT;
+  #endif // !NDEBUG
+
   for (int i = 0; i < N_RUNS; i++) {
+
+    #ifndef NDEBUG
+      audioGenFT.start_clock();
+    #endif // !NDEBUG
+
     // Wait until an image is available in the queue
     sem_wait(&img_sem);
     {
@@ -511,9 +557,19 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       // std::cout << i << ": Pushed buffer onto queue" << std::endl;
     }
     sem_post(&audio_sem);
+
+    #ifndef NDEBUG
+      audioGenFT.stop_clock();
+    #endif // !NDEBUG
+
   }
 
   delete[] samples;
+
+  #ifndef NDEBUG
+    audioGenFT.print_average("Audio Gen");
+  #endif // !NDEBUG
+    
 
   std::cout << "audio gen thread end" << std::endl;
 }
@@ -522,7 +578,17 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
 
   std::cout << "audio play thread start" << std::endl;
 
+  #ifndef NDEBUG
+    FunctionTimer audioPlayFT;
+  #endif // !NDEBUG
+    
+
   for (int i = 0; i < N_RUNS; i++) {
+
+    #ifndef NDEBUG
+      audioPlayFT.start_clock();
+    #endif // !NDEBUG
+
     sem_wait(&audio_sem);
 
     ALint source_state;
@@ -551,8 +617,6 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
       // std::cout << "PLAYING" << std::endl;
     }
 
-    std::cout << "Audio ended" << std::endl;
-
     // Pop processed audio from queue
     ALint processed;
     alGetSourcei(source, AL_BUFFERS_PROCESSED, &processed);
@@ -564,7 +628,15 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
       // std::cout << i << ": Popped buffer from queue" << std::endl;
       --processed;
     }
+
+    #ifndef NDEBUG
+      audioPlayFT.stop_clock();
+    #endif // !NDEBUG
   }
+
+  #ifndef NDEBUG
+    audioPlayFT.print_average("AudioPlay");
+  #endif // !NDEBUG
 
   std::cout << "audio play thread end" << std::endl;
 }
