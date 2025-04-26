@@ -80,6 +80,7 @@ int SPECKLE_RANGE = 32;
 int DISP12MAXDIFF = 1;
 double PRESTEREO_SCALE_RATIO = 0.5;
 bool AVERAGE_DEPTH = false;
+bool SAVE_DEPTH = false;
 
 struct Pair {
   int x;
@@ -435,7 +436,7 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
       lr_img_queue.pop();
       // std::cout << i << ": Removed image from queue" << std::endl;
     }
-
+    
     // perform stereo block matching
     stereo->compute(left_frame, right_frame, disparity);
 
@@ -459,7 +460,7 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
     }
     
 
-    if (SAVE_IMG)
+    if (SAVE_DEPTH)
       cv::imwrite("cropped.png", depth);
 
     // scale down to size
@@ -510,10 +511,15 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
   short *samples = nullptr;
   int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
 
+
   std::cout << "audio gen thread start" << std::endl;
 
   #ifndef NDEBUG
     FunctionTimer audioGenFT;
+    FunctionTimer genSineFT;
+    FunctionTimer waitDepthFT;
+    FunctionTimer volumeFT;
+    FunctionTimer bufferFT; 
   #endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
@@ -522,6 +528,9 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       audioGenFT.start_clock();
     #endif // !NDEBUG
 
+    #ifndef NDEBUG
+      waitDepthFT.start_clock();
+    #endif // !NDEBUG
     // Wait until an image is available in the queue
     sem_wait(&img_sem);
     {
@@ -530,22 +539,43 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       img_queue.pop();
       // std::cout << i << ": Removed image from queue" << std::endl;
     }
+    #ifndef NDEBUG
+      waitDepthFT.stop_clock();
+    #endif // !NDEBUG
 
     // Get volumes
+    #ifndef NDEBUG
+      volumeFT.start_clock();
+    #endif // !NDEBUG
     float volumes[n_pixels];
     generateVolumes(volumes, image, hilbert, n_pixels);
+    #ifndef NDEBUG
+      volumeFT.stop_clock();
+    #endif // !NDEBUG
+
+    #ifndef NDEBUG
+      genSineFT.start_clock();
+    #endif // !NDEBUG
 
     // Generate sines
     generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
 
+    #ifndef NDEBUG
+      genSineFT.stop_clock();
+    #endif // !NDEBUG
+
     // Create buffer
+    #ifndef NDEBUG
+      bufferFT.start_clock();
+    #endif // !NDEBUG
+  
     ALuint buffer;
     alGenBuffers(1, &buffer);
+    ALint buffers_queued;
     alBufferData(buffer, AL_FORMAT_MONO16, samples,
                  sample_count * sizeof(short), SAMPLE_RATE);
 
     // Push buffer onto queue
-    ALint buffers_queued;
     alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
     while (buffers_queued >= MAX_BUFFERS) {
       alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
@@ -557,6 +587,9 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       // std::cout << i << ": Pushed buffer onto queue" << std::endl;
     }
     sem_post(&audio_sem);
+    #ifndef NDEBUG
+      bufferFT.stop_clock();
+    #endif // !NDEBUG
 
     #ifndef NDEBUG
       audioGenFT.stop_clock();
@@ -568,6 +601,10 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
 
   #ifndef NDEBUG
     audioGenFT.print_average("Audio Gen");
+    genSineFT.print_average("genSines");
+    waitDepthFT.print_average("sineWait");
+    volumeFT.print_average("volume");
+    bufferFT.print_average("buffer"); 
   #endif // !NDEBUG
     
 
@@ -722,6 +759,7 @@ int main(int argc, char **argv) {
     getValue("DISP12MAXDIFF", DISP12MAXDIFF);
     getValue("PRESTEREO_SCALE_RATIO", PRESTEREO_SCALE_RATIO);
     getValue("AVERAGE_DEPTH", AVERAGE_DEPTH);
+    getValue("SAVE_DEPTH", SAVE_DEPTH);
 
   } else {
     std::cout << "Settings file failed to open\n Default settings applied"
