@@ -1,3 +1,4 @@
+#include "FunctionTimer/functiontimer.hpp"
 #include "opencv2/core/hal/interface.h"
 #include "opencv2/imgproc.hpp"
 #include "opencv2/videoio.hpp"
@@ -5,6 +6,7 @@
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <chrono>
 #include <cmath>
@@ -26,8 +28,6 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
-#include "FunctionTimer/functiontimer.hpp"
-#include <cassert>
 
 /*
 Naming Conventions
@@ -81,6 +81,9 @@ int DISP12MAXDIFF = 1;
 double PRESTEREO_SCALE_RATIO = 0.5;
 bool AVERAGE_DEPTH = false;
 bool SAVE_DEPTH = false;
+int MAX_BUFFER = 2;
+bool USE_INTERNEAREST = false;
+bool USE_INTERAREA = false;
 
 struct Pair {
   int x;
@@ -196,7 +199,8 @@ int genSampleArray(short *&samples, int sample_rate, float duration) {
 
 void generateSines(short *samples, int sample_count, int n_pixel,
                    int sample_rate, float *volumes, float *freqs) {
-  //std::cout << sample_count << " " << n_pixel << " " << sample_count * n_pixel << std::endl;
+  // std::cout << sample_count << " " << n_pixel << " " << sample_count *
+  // n_pixel << std::endl;
   int fade_samples = (int)((double)sample_count * FADE_PERCENT);
   // std::cout << "Fade in first " << fade_samples << "samples" << std::endl;
 
@@ -233,7 +237,8 @@ double generateFrequencies(float freqs[], double min_freq, double max_freq,
   for (int i = 0; i < n_pixels; i++) {
     int numerator = i * (max_freq - min_freq) + min_freq * n_pixels;
     int denominator = n_pixels;
-    freqs[i] = numerator / denominator; // I know its the wrong way around, its fine.
+    freqs[i] =
+        numerator / denominator; // I know its the wrong way around, its fine.
 
     // Period is 1 / f, so flip numerator and denominator
     // T = lcm(d1, d2, ... dn) / gcd(n1, n2, ..., nn) | fi = ni / di
@@ -329,8 +334,6 @@ bool capture_image(cv::VideoCapture& cap, cv::Mat& frame, int max_attempts = 3)
 void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
               struct CalibrationMaps &maps, std::queue<cv::Mat> &lr_img_queue,
               sem_t &lr_img_sem, std::mutex &lr_img_mutex) {
-  const int MAX_IMAGES = 2;
-
   cv::Mat left_frame, right_frame;
 
   cv::Mat test;
@@ -341,15 +344,15 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
 
   std::cout << "image gen thread start" << std::endl;
 
-  #ifndef NDEBUG
-    FunctionTimer imageGenFT;
-  #endif
+#ifndef NDEBUG
+  FunctionTimer imageGenFT;
+#endif
 
   for (int i = 0; i < N_RUNS; i++) {
 
-    #ifndef NDEBUG
-      imageGenFT.start_clock();
-    #endif
+#ifndef NDEBUG
+    imageGenFT.start_clock();
+#endif
 
     // Capture image
     if (!captureImage(left_frame, right_frame, left, right)) {
@@ -376,7 +379,11 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
       cv::imwrite("left.png", left_frame);
 
     // Push image pointer to queue
-    while (lr_img_queue.size() >= MAX_IMAGES) {
+    while (lr_img_queue.size() >=
+           MAX_BUFFER * 2) { // MAX BUFFER * 2 because img gen pushes left and
+                             // right images to queue
+      std::cout << "IMG_GEN: Maxed buffer" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // When room in queue
@@ -390,14 +397,14 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
     // Post semaphore
     sem_post(&lr_img_sem);
 
-    #ifndef NDEBUG
-      imageGenFT.stop_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    imageGenFT.stop_clock();
+#endif // !NDEBUG
   }
-  
-  #ifndef NDEBUG
-    imageGenFT.print_average("ImageGen");
-  #endif // !NDEBUG
+
+#ifndef NDEBUG
+  imageGenFT.print_average("ImageGen");
+#endif // !NDEBUG
 
   std::cout << "image gen thread end" << std::endl;
 }
@@ -407,20 +414,18 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
               std::mutex &lr_img_mutex, std::queue<cv::Mat> &img_queue,
               sem_t &img_sem, std::mutex &img_mutex) {
   std::cout << "depth gen thread start" << std::endl;
-  const int MAX_IMAGES = 2;
 
   cv::Mat left_frame, right_frame, disparity, depth, previous_depth;
 
-  #ifndef NDEBUG
-    FunctionTimer depthGenFT;
-  #endif // !NDEBUG
+#ifndef NDEBUG
+  FunctionTimer depthGenFT;
+#endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
-    
-    #ifndef NDEBUG
-      depthGenFT.start_clock();
-    #endif // !NDEBUG
 
+#ifndef NDEBUG
+    depthGenFT.start_clock();
+#endif // !NDEBUG
 
     // wait until left and right images are available in the queue
     sem_wait(&lr_img_sem);
@@ -434,21 +439,22 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
       // Get left
       left_frame = lr_img_queue.front();
       lr_img_queue.pop();
-      // std::cout << i << ": Removed image from queue" << std::endl;
+
+      std::cout << "DEPTH_GEN: Consumed img_gen" << std::endl;
     }
-    
+
     // perform stereo block matching
     stereo->compute(left_frame, right_frame, disparity);
 
     // normalize to depth map
-    //int cropLeft = NUM_DISPARITIES; // or just use 96 if hardcoded
-    //cv::Rect roi(cropLeft, 0, disparity.cols - cropLeft, disparity.rows);
-    //disparity = disparity(roi);
+    // int cropLeft = NUM_DISPARITIES; // or just use 96 if hardcoded
+    // cv::Rect roi(cropLeft, 0, disparity.cols - cropLeft, disparity.rows);
+    // disparity = disparity(roi);
 
     disparity.convertTo(depth, CV_8U, 255.0 / (NUM_DISPARITIES * 16));
 
     depth = depth(cv::Range(7, 472), cv::Range(102, 632));
-    
+
     // Average both depths to get rid of random splotches
     if (AVERAGE_DEPTH) {
       if (previous_depth.empty()) {
@@ -458,20 +464,26 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
       depth = (previous_depth + depth * 2) / 3;
       previous_depth = depth;
     }
-    
 
     if (SAVE_DEPTH)
       cv::imwrite("cropped.png", depth);
 
     // scale down to size
     cv::Size scaled_size(image_width, image_width);
-    cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_AREA);
+    if (USE_INTERNEAREST)
+      cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_NEAREST);
+    else if (USE_INTERAREA)
+      cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_AREA);
+    else
+      cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_AREA);
 
     if (SAVE_IMG)
       cv::imwrite("view.png", depth);
 
     // Push image pointer to queue
-    while (img_queue.size() >= MAX_IMAGES) {
+    while (img_queue.size() >= MAX_BUFFER) {
+      std::cout << "DEPTH_GEN: Maxed buffer" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
     // When room in queue
@@ -484,17 +496,17 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
     // Post semaphore
     sem_post(&img_sem);
 
-    #ifndef NDEBUG
-      depthGenFT.stop_clock();
-    #endif // !NDEBUG
-        
+    // std::cout << i << ": Removed image from queue" << std::endl;
+#ifndef NDEBUG
+    depthGenFT.stop_clock();
+#endif // !NDEBUG
 
     // save image for debug
   }
 
-  #ifndef NDEBUG
-    depthGenFT.print_average("Depth Gen");
-  #endif // !NDEBUG
+#ifndef NDEBUG
+  depthGenFT.print_average("Depth Gen");
+#endif // !NDEBUG
 
   std::cout << "depth gen thread end" << std::endl;
 }
@@ -511,64 +523,64 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
   short *samples = nullptr;
   int sample_count = genSampleArray(samples, SAMPLE_RATE, DURATION);
 
-
   std::cout << "audio gen thread start" << std::endl;
 
-  #ifndef NDEBUG
-    FunctionTimer audioGenFT;
-    FunctionTimer genSineFT;
-    FunctionTimer waitDepthFT;
-    FunctionTimer volumeFT;
-    FunctionTimer bufferFT; 
-  #endif // !NDEBUG
+#ifndef NDEBUG
+  FunctionTimer audioGenFT;
+  FunctionTimer genSineFT;
+  FunctionTimer waitDepthFT;
+  FunctionTimer volumeFT;
+  FunctionTimer bufferFT;
+#endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
 
-    #ifndef NDEBUG
-      audioGenFT.start_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    audioGenFT.start_clock();
+#endif // !NDEBUG
 
-    #ifndef NDEBUG
-      waitDepthFT.start_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    waitDepthFT.start_clock();
+#endif // !NDEBUG
     // Wait until an image is available in the queue
     sem_wait(&img_sem);
     {
       std::lock_guard<std::mutex> lock(img_mutex);
       image = img_queue.front();
       img_queue.pop();
-      // std::cout << i << ": Removed image from queue" << std::endl;
-    }
-    #ifndef NDEBUG
-      waitDepthFT.stop_clock();
-    #endif // !NDEBUG
 
-    // Get volumes
-    #ifndef NDEBUG
-      volumeFT.start_clock();
-    #endif // !NDEBUG
+      std::cout << "AUDIO_GEN: Consumed depth gen" << std::endl;
+    }
+#ifndef NDEBUG
+    waitDepthFT.stop_clock();
+#endif // !NDEBUG
+
+// Get volumes
+#ifndef NDEBUG
+    volumeFT.start_clock();
+#endif // !NDEBUG
     float volumes[n_pixels];
     generateVolumes(volumes, image, hilbert, n_pixels);
-    #ifndef NDEBUG
-      volumeFT.stop_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    volumeFT.stop_clock();
+#endif // !NDEBUG
 
-    #ifndef NDEBUG
-      genSineFT.start_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    genSineFT.start_clock();
+#endif // !NDEBUG
 
     // Generate sines
     generateSines(samples, sample_count, n_pixels, SAMPLE_RATE, volumes, freqs);
 
-    #ifndef NDEBUG
-      genSineFT.stop_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    genSineFT.stop_clock();
+#endif // !NDEBUG
 
-    // Create buffer
-    #ifndef NDEBUG
-      bufferFT.start_clock();
-    #endif // !NDEBUG
-  
+// Create buffer
+#ifndef NDEBUG
+    bufferFT.start_clock();
+#endif // !NDEBUG
+
     ALuint buffer;
     alGenBuffers(1, &buffer);
     ALint buffers_queued;
@@ -576,10 +588,11 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
                  sample_count * sizeof(short), SAMPLE_RATE);
 
     // Push buffer onto queue
-    alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
-    while (buffers_queued >= MAX_BUFFERS) {
+    do {
       alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
-    }
+      std::cout << "AUDIO_GEN: Maxed buffer" << std::endl;
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    } while (buffers_queued >= MAX_BUFFER);
 
     {
       std::lock_guard<std::mutex> lock_guard(audio_mutex);
@@ -587,26 +600,24 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       // std::cout << i << ": Pushed buffer onto queue" << std::endl;
     }
     sem_post(&audio_sem);
-    #ifndef NDEBUG
-      bufferFT.stop_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    bufferFT.stop_clock();
+#endif // !NDEBUG
 
-    #ifndef NDEBUG
-      audioGenFT.stop_clock();
-    #endif // !NDEBUG
-
+#ifndef NDEBUG
+    audioGenFT.stop_clock();
+#endif // !NDEBUG
   }
 
   delete[] samples;
 
-  #ifndef NDEBUG
-    audioGenFT.print_average("Audio Gen");
-    genSineFT.print_average("genSines");
-    waitDepthFT.print_average("sineWait");
-    volumeFT.print_average("volume");
-    bufferFT.print_average("buffer"); 
-  #endif // !NDEBUG
-    
+#ifndef NDEBUG
+  audioGenFT.print_average("Audio Gen");
+  genSineFT.print_average("genSines");
+  waitDepthFT.print_average("sineWait");
+  volumeFT.print_average("volume");
+  bufferFT.print_average("buffer");
+#endif // !NDEBUG
 
   std::cout << "audio gen thread end" << std::endl;
 }
@@ -615,16 +626,15 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
 
   std::cout << "audio play thread start" << std::endl;
 
-  #ifndef NDEBUG
-    FunctionTimer audioPlayFT;
-  #endif // !NDEBUG
-    
+#ifndef NDEBUG
+  FunctionTimer audioPlayFT;
+#endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
 
-    #ifndef NDEBUG
-      audioPlayFT.start_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    audioPlayFT.start_clock();
+#endif // !NDEBUG
 
     sem_wait(&audio_sem);
 
@@ -634,8 +644,7 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
     if (source_state != AL_PLAYING) {
       // If the source isn't playing, start playback (or restart if needed)
       alSourcePlay(source);
-      // std::cout << "STOPPED NEEDED TO RESTART ---------------------------" <<
-      // std::endl;
+      std::cout << "AUDIO_PLAY: Started playing" << std::endl;
     }
 
     ChronoType start_time = std::chrono::high_resolution_clock::now();
@@ -666,14 +675,14 @@ void audioPlay(sem_t &audio_sem, ALuint &source) {
       --processed;
     }
 
-    #ifndef NDEBUG
-      audioPlayFT.stop_clock();
-    #endif // !NDEBUG
+#ifndef NDEBUG
+    audioPlayFT.stop_clock();
+#endif // !NDEBUG
   }
 
-  #ifndef NDEBUG
-    audioPlayFT.print_average("AudioPlay");
-  #endif // !NDEBUG
+#ifndef NDEBUG
+  audioPlayFT.print_average("AudioPlay");
+#endif // !NDEBUG
 
   std::cout << "audio play thread end" << std::endl;
 }
@@ -760,6 +769,9 @@ int main(int argc, char **argv) {
     getValue("PRESTEREO_SCALE_RATIO", PRESTEREO_SCALE_RATIO);
     getValue("AVERAGE_DEPTH", AVERAGE_DEPTH);
     getValue("SAVE_DEPTH", SAVE_DEPTH);
+    getValue("MAX_BUFFER", MAX_BUFFER);
+    getValue("USE_INTERAREA", USE_INTERAREA);
+    getValue("USE_INTERNEAREST", USE_INTERNEAREST);
 
   } else {
     std::cout << "Settings file failed to open\n Default settings applied"
