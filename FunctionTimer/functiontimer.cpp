@@ -5,6 +5,7 @@
 FunctionTimer::FunctionTimer() {
   start = std::chrono::high_resolution_clock::now();
   end = std::chrono::high_resolution_clock::now();
+  total_elapsed = std::chrono::duration<double>::zero();
   runs = 0;
 
   min = std::chrono::seconds::max();
@@ -28,8 +29,17 @@ void FunctionTimer::stop_clock() {
 
 void FunctionTimer::print_average(std::string name) {
   std::chrono::duration<double> average_elapsed = total_elapsed / runs;
-  std::cout << name << " has run " << runs << " times" << std::endl;
-  std::cout << "Average time of : " << average_elapsed.count() << " seconds per run" << std::endl;
-  std::cout << "Max runtime was : " << max.count() << " seconds" << std::endl;
-  std::cout << "Min runtime was : " << min.count() << " seconds" << std::endl;
+  std::chrono::duration<double> total_wo_max = total_elapsed - max;
+  std::chrono::duration<double> average_wo_max = total_wo_max / runs;
+
+  std::cout << name << " run " << runs << " times" << std::endl
+            << name << " Average time of : " << average_elapsed.count()
+            << " seconds per run" << std::endl
+            << name << " Max runtime was : " << max.count() << " seconds"
+            << std::endl
+            << name << " Min runtime was : " << min.count() << " seconds"
+            << std::endl
+            << name
+            << " Average time excluding max : " << average_wo_max.count()
+            << " seconds" << std::endl;
 }
