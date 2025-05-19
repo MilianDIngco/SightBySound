@@ -241,7 +241,7 @@ int generateSines(short *samples, int sample_count, int n_pixel,
         fade_samples;
     samples[sample_i] =
         static_cast<short>((sample / n_pixel) * 32767 * std::pow(fade_in, 2) *
-                           std::pow(fade_out, 2));
+                           std::pow(fade_out, 2) * VOLUME);
   }
 
   return start_sample + sample_count;
