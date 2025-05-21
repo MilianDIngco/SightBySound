@@ -29,6 +29,7 @@
 #include <unordered_map>
 #include <variant>
 #include <vector>
+#include <unordered_map>
 
 /*
 Naming Conventions
@@ -86,6 +87,8 @@ int MAX_BUFFER = 2;
 bool USE_INTERNEAREST = false;
 bool USE_INTERAREA = false;
 bool SAVE_SMALL = false;
+std::string TEST_VAR = "";
+float TEST_VALUE = 0;
 
 struct Pair {
   int x;
@@ -341,18 +344,40 @@ bool openCamera(cv::VideoCapture &cap, std::string path) {
     std::cerr << "ERROR: Failed to open camera at path " << path << std::endl;
     return false;
   }
+
+  cv::Mat mat;
+  if(!cap.read(mat)) {
+    std::cerr << "ERROR: Camera opened but couldn't capture image" << std::endl;
+    return false;
+  }
+
   cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
   return true;
 }
 
-/*
-bool capture_image(cv::VideoCapture& cap, cv::Mat& frame, int max_attempts = 3)
-{ for (int i = 0; i < max_attempts; i++) { if (cap.read(frame)) { return true;
-    }
-  }
+#ifndef NDEBUG
+void copyFileStorage(const cv::FileStorage& fs, std::unordered_map<std::string, std::vector<double>>& map) {
+  for (cv::FileNodeIterator it = fs.root().begin(); it != fs.root().end(); it++) {
+    cv::FileNode node = *it;
+    std::string key = (*it).name();
 
-  return false;
-}*/
+    std::vector<double> current;
+    node >> current;
+
+    map[key] = current;
+  }
+}
+
+void writeFileStorage(cv::FileStorage& fs, std::unordered_map<std::string, std::vector<double>>& map) {
+  for (auto it = map.begin(); it != map.end(); it++) {
+    std::string key = it->first;
+    std::vector<double> value = it->second;
+
+    fs << key << value;
+  }
+}
+
+#endif
 
 // -----------------------------------Thread
 // Functions---------------------------------------
@@ -373,6 +398,19 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
 
 #ifndef NDEBUG
   FunctionTimer imageGenFT;
+  cv::FileStorage imageFS;
+  std::unordered_map<std::string, std::vector<double>> times_map;
+  std::string time_filename = "./gen_times/image_times.yml";
+  std::string test_name = TEST_VAR + std::to_string(TEST_VALUE);
+  std::replace(test_name.begin(), test_name.end(), '.', '_');
+
+  // Store copy of data in a map
+  imageFS.open(time_filename, cv::FileStorage::READ);
+  if (imageFS.isOpened()) {
+    copyFileStorage(imageFS, times_map);
+    imageFS.release();
+  }
+
 #endif
 
   for (int i = 0; i < N_RUNS; i++) {
@@ -386,9 +424,9 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
       std::cerr << "ERROR: Failed to capture images" << std::endl;
       continue;
     }
-  
+
     if (SAVE_IMG)
-      cv::imwrite("left.png", left_frame);
+      cv::imwrite("view/left.png", left_frame);
 
     // RECTIFY IMAGES
     cv::remap(left_frame, left_frame, maps.left_map1, maps.left_map2,
@@ -402,7 +440,7 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
     cv::resize(right_frame, right_frame, scaled_size, 0, 0, cv::INTER_NEAREST);
 
     if (SAVE_IMG)
-      cv::imwrite("left_rect.png", left_frame);
+      cv::imwrite("view/left_rect.png", left_frame);
 
     // CONVERT IMAGES TO GRAYSCALE
     cv::cvtColor(left_frame, left_frame, cv::COLOR_BGR2GRAY);
@@ -437,6 +475,27 @@ void imageGen(cv::VideoCapture &left, cv::VideoCapture &right,
 #ifndef NDEBUG
   std::lock_guard<std::mutex> lock(cout_mutex);
   imageGenFT.print_average("ImageGen");
+
+  // Check if current test name exists in map
+  // If so, append data to that times it
+  // Else, create it
+  double average_time = imageGenFT.get_average().count();
+  if (times_map.count(test_name) > 0) {
+    times_map.at(test_name).push_back(average_time);
+  } else {
+    std::vector<double> current;
+    current.push_back(average_time);
+    times_map[test_name] = current;
+  }
+
+  // Write all keys and their data to the yml file
+  if(imageFS.open(time_filename, cv::FileStorage::WRITE)) {
+    writeFileStorage(imageFS, times_map);
+    imageFS.release();
+  } else {
+    std::cerr << "ERROR: Failed to open " << time_filename << " in write mode" << std::endl;
+  }
+
 #endif // !NDEBUG
 
   std::cout << "IMAGE_GEN: thread end" << std::endl;
@@ -456,6 +515,18 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
 
 #ifndef NDEBUG
   FunctionTimer depthGenFT;
+  cv::FileStorage depthFS;
+  std::unordered_map<std::string, std::vector<double>> times_map;
+  std::string time_filename = "./gen_times/depth_times.yml";
+  std::string test_name = TEST_VAR + std::to_string(TEST_VALUE);
+  std::replace(test_name.begin(), test_name.end(), '.', '_');
+
+  depthFS.open(time_filename, cv::FileStorage::READ);
+  if(depthFS.isOpened()) {
+    copyFileStorage(depthFS, times_map);
+    depthFS.release();
+  }
+  
 #endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
@@ -501,7 +572,7 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
     }
 
     if (SAVE_IMG || SAVE_DEPTH)
-      cv::imwrite("depth.png", depth);
+      cv::imwrite("view/depth.png", depth);
 
     // scale down to size
     cv::Size scaled_size(image_width, image_width);
@@ -513,7 +584,7 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
       cv::resize(depth, depth, scaled_size, 0, 0, cv::INTER_AREA);
 
     if (SAVE_IMG || SAVE_SMALL)
-      cv::imwrite("view.png", depth);
+      cv::imwrite("view/scaled_depth.png", depth);
 
     // Push image pointer to queue
     while (img_queue.size() >= MAX_BUFFER) {
@@ -543,6 +614,24 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
 #ifndef NDEBUG
   std::lock_guard<std::mutex> lock(cout_mutex);
   depthGenFT.print_average("Depth Gen");
+
+  // Add current average time 
+  double average_time = depthGenFT.get_average().count();
+  if (times_map.count(test_name) > 0) {
+    times_map.at(test_name).push_back(average_time);
+  } else {
+    std::vector<double> current;
+    current.push_back(average_time);
+    times_map[test_name] = current;
+  }
+
+  // Write back to file
+  if (depthFS.open(time_filename, cv::FileStorage::WRITE)) {
+    writeFileStorage(depthFS, times_map);
+    depthFS.release();
+  } else {
+    std::cerr << "ERROR: Failed to open " << time_filename << " in write mode" << std::endl;
+  }
 #endif // !NDEBUG
 
   std::cout << "DEPTH_GEN: thread end" << std::endl;
@@ -574,6 +663,27 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
 #ifndef NDEBUG
   FunctionTimer audioGenFT;
   FunctionTimer genSineFT;
+  cv::FileStorage audioFS;
+  cv::FileStorage sineFS;
+  std::unordered_map<std::string, std::vector<double>> audio_times_map;
+  std::unordered_map<std::string, std::vector<double>> sine_times_map;
+  std::string audio_time_filename = "./gen_times/audio_gen_times.yml";
+  std::string sine_time_filename = "./gen_times/sine_times.yml";
+  std::string test_name = TEST_VAR + std::to_string(TEST_VALUE);
+  std::replace(test_name.begin(), test_name.end(), '.', '_');
+
+  // Store copy in a map
+  audioFS.open(audio_time_filename, cv::FileStorage::READ);
+  if (audioFS.isOpened()) {
+    copyFileStorage(audioFS, audio_times_map);
+    audioFS.release();
+  }
+
+  sineFS.open(sine_time_filename, cv::FileStorage::READ);
+  if (sineFS.isOpened()) {
+    copyFileStorage(sineFS, sine_times_map);
+    sineFS.release();
+  }
 #endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
@@ -646,6 +756,41 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
   std::lock_guard<std::mutex> lock(cout_mutex);
   audioGenFT.print_average("Audio Gen");
   genSineFT.print_average("genSines");
+
+  // Add average times
+  double average_audio_time = audioGenFT.get_average().count();
+  double average_sine_time = genSineFT.get_average().count();
+  if (audio_times_map.count(test_name) > 0) {
+    audio_times_map.at(test_name).push_back(average_audio_time);
+  } else {
+    std::vector<double> current;
+    current.push_back(average_audio_time);
+    audio_times_map[test_name] = current;
+  }
+
+  if (sine_times_map.count(test_name) > 0) {
+    sine_times_map.at(test_name).push_back(average_sine_time);
+  } else {
+    std::vector<double> current;
+    current.push_back(average_sine_time);
+    sine_times_map[test_name] = current;
+  }
+
+  // Write to yml files
+  if (audioFS.open(audio_time_filename, cv::FileStorage::WRITE)) {
+    writeFileStorage(audioFS, audio_times_map);
+    audioFS.release();
+  } else {
+    std::cerr << "ERROR: Failed to open " << audio_time_filename << " in write mode" << std::endl;
+  }
+
+  if (sineFS.open(sine_time_filename, cv::FileStorage::WRITE)) {
+    writeFileStorage(sineFS, sine_times_map);
+    sineFS.release();
+  } else {
+    std::cerr << "ERROR: Failed to open " << sine_time_filename << " in write mode" << std::endl;
+  }
+
 #endif // !NDEBUG
 
   std::cout << "AUDIO_GEN: thread end" << std::endl;
@@ -661,6 +806,19 @@ void audioPlay(std::vector<ALuint> &free_buffers, sem_t &audio_sem,
 
 #ifndef NDEBUG
   FunctionTimer audioPlayFT;
+  cv::FileStorage playFS;
+  std::unordered_map<std::string, std::vector<double>> times_map;
+  std::string time_filename = "./gen_times/play_times.yml";
+  std::string test_name = TEST_VAR + std::to_string(TEST_VALUE);
+  std::replace(test_name.begin(), test_name.end(), '.', '_');
+
+  // Store copy of data in a map
+  playFS.open(time_filename, cv::FileStorage::READ);
+  if (playFS.isOpened()) {
+    copyFileStorage(playFS, times_map);
+    playFS.release();
+  }
+
 #endif // !NDEBUG
 
   for (int i = 0; i < N_RUNS; i++) {
@@ -725,13 +883,31 @@ void audioPlay(std::vector<ALuint> &free_buffers, sem_t &audio_sem,
 #ifndef NDEBUG
   std::lock_guard<std::mutex> lock(cout_mutex);
   audioPlayFT.print_average("AudioPlay");
+
+  // Add average time
+  double average_time = audioPlayFT.get_average().count();
+  if (times_map.count(test_name) > 0) {
+    times_map.at(test_name).push_back(average_time);
+  } else {
+    std::vector<double> current;
+    current.push_back(average_time);
+    times_map[test_name] = current;
+  }
+
+  // Write to file
+  if (playFS.open(time_filename, cv::FileStorage::WRITE)) {
+    writeFileStorage(playFS, times_map);
+    playFS.release();
+  } else {
+    std::cerr << "ERROR: Failed to open " << time_filename << " in write mode" << std::endl;
+  }
 #endif // !NDEBUG
 
   std::cout << "AUDIO_PLAY: thread end" << std::endl;
 }
 
 int main(int argc, char **argv) {
-
+  std::this_thread::sleep_for(std::chrono::seconds(3)); 
   // ------------------------------------------------Read in settings from text
   // file----------------
   std::ifstream settings("settings.txt");
@@ -823,6 +999,18 @@ int main(int argc, char **argv) {
     // leave default settings
   }
   settings.close();
+
+  cv::FileStorage dynamic_settings("cv_settings.yml", cv::FileStorage::READ);
+  dynamic_settings["ORDER"] >> ORDER;
+  dynamic_settings["SAMPLE_RATE"] >> SAMPLE_RATE;
+  dynamic_settings["NUM_DISPARITIES"] >> NUM_DISPARITIES;
+  dynamic_settings["BLOCK_SIZE"] >> BLOCK_SIZE;
+  dynamic_settings["TEST_VAR"] >> TEST_VAR;
+  dynamic_settings["TEST_VALUE"] >> TEST_VALUE;
+
+  std::cout << "Testing " << TEST_VAR << " with New Settings: ORDER = " << ORDER << ", SAMPLE_RATE = " << SAMPLE_RATE << ", NUM_DISP = " << NUM_DISPARITIES << ", BLOCK_SIZE = " << BLOCK_SIZE << std::endl;
+
+  //fs["PRESTEREO_SCALE_RATIO"] >> PRESTEREO_SCALE_RATIO;
 
   // ------------------------------------------------Derive variables, Open
   // camera & calibration-------------make

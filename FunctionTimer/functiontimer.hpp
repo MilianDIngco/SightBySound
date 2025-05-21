@@ -10,6 +10,7 @@ class FunctionTimer {
     void start_clock();
     void stop_clock();
     void print_average(std::string name);
+    std::chrono::duration<double> get_average();
   private:
     std::chrono::time_point<std::chrono::high_resolution_clock> start;
     std::chrono::time_point<std::chrono::high_resolution_clock> end;

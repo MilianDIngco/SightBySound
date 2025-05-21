@@ -43,3 +43,11 @@ void FunctionTimer::print_average(std::string name) {
             << " Average time excluding max : " << average_wo_max.count()
             << " seconds" << std::endl;
 }
+
+std::chrono::duration<double> FunctionTimer::get_average() {
+  std::chrono::duration<double> average_elapsed = total_elapsed / runs;
+  std::chrono::duration<double> total_wo_max = total_elapsed - max;
+  std::chrono::duration<double> average_wo_max = total_wo_max / runs;
+
+  return average_wo_max;
+}
