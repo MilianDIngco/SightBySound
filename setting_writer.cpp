@@ -64,9 +64,9 @@ int main(int argc, char** argv) {
    */
 
   Field order("ORDER", 3, 5, 1);
-  Field sample_rate("SAMPLE_RATE", 11000, 96000, 1000);
-  Field block_size("BLOCK_SIZE", 5, 55, 2);
-  Field num_disp("NUM_DISPARITIES", 16, 128, 16);
+  Field sample_rate("SAMPLE_RATE", 11000, 44000, 1000);
+  Field block_size("BLOCK_SIZE", 5, 35, 2);
+  Field num_disp("NUM_DISPARITIES", 16, 96, 16);
 
   std::unordered_map<std::string, Field> var_map;
   var_map.emplace("ORDER", order);

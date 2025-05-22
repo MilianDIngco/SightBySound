@@ -531,10 +531,6 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
 
   for (int i = 0; i < N_RUNS; i++) {
 
-#ifndef NDEBUG
-    depthGenFT.start_clock();
-#endif // !NDEBUG
-
     // wait until left and right images are available in the queue
     sem_wait(&lr_img_sem);
     {
@@ -548,6 +544,10 @@ void depthGen(cv::Ptr<cv::StereoBM> &stereo, int image_width,
       left_frame = lr_img_queue.front();
       lr_img_queue.pop();
     }
+
+#ifndef NDEBUG
+    depthGenFT.start_clock();
+#endif // !NDEBUG
 
     // perform stereo block matching
     stereo->compute(left_frame, right_frame, disparity);
@@ -688,10 +688,6 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
 
   for (int i = 0; i < N_RUNS; i++) {
 
-#ifndef NDEBUG
-    audioGenFT.start_clock();
-#endif // !NDEBUG
-
     // Wait until an image is available in the queue
     sem_wait(&img_sem);
     {
@@ -699,6 +695,10 @@ void audioGen(std::queue<cv::Mat> &img_queue, sem_t &img_sem,
       image = img_queue.front();
       img_queue.pop();
     }
+
+#ifndef NDEBUG
+    audioGenFT.start_clock();
+#endif // !NDEBUG
 
     float volumes[n_pixels];
     generateVolumes(volumes, image, hilbert, n_pixels);
@@ -823,11 +823,11 @@ void audioPlay(std::vector<ALuint> &free_buffers, sem_t &audio_sem,
 
   for (int i = 0; i < N_RUNS; i++) {
 
+    sem_wait(&audio_sem);
+
 #ifndef NDEBUG
     audioPlayFT.start_clock();
 #endif // !NDEBUG
-
-    sem_wait(&audio_sem);
 
     ALint source_state;
     alGetSourcei(source, AL_SOURCE_STATE, &source_state);
