@@ -1000,6 +1000,7 @@ int main(int argc, char **argv) {
   }
   settings.close();
 
+#ifndef NDEBUG
   cv::FileStorage dynamic_settings("cv_settings.yml", cv::FileStorage::READ);
   dynamic_settings["ORDER"] >> ORDER;
   dynamic_settings["SAMPLE_RATE"] >> SAMPLE_RATE;
@@ -1009,6 +1010,7 @@ int main(int argc, char **argv) {
   dynamic_settings["TEST_VALUE"] >> TEST_VALUE;
 
   std::cout << "Testing " << TEST_VAR << " with New Settings: ORDER = " << ORDER << ", SAMPLE_RATE = " << SAMPLE_RATE << ", NUM_DISP = " << NUM_DISPARITIES << ", BLOCK_SIZE = " << BLOCK_SIZE << std::endl;
+#endif // !NDEBUG
 
   //fs["PRESTEREO_SCALE_RATIO"] >> PRESTEREO_SCALE_RATIO;
 
