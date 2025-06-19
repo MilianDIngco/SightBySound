@@ -1,0 +1,7 @@
+#include <gtest/gtest.h>
+#include <iostream>
+#include "audiomanager.hpp"
+
+TEST(AudioManagerTest, someTest) {
+  std::cout << "Testing something idk man" << std::endl;
+}

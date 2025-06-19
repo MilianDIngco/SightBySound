@@ -1,13 +1,14 @@
-#include "../include/audiomanager.hpp"
+#include "audiomanager.hpp"
 #include <cmath>
 #include <numeric>
+#include <iostream>
 
 void AudioManager::generateSampleArray(std::vector<short> samples, int sample_rate, float duration) {
   if (sample_rate == -1) {
     sample_rate = this->sample_rate;
   }
   if (duration == -1) {
-
+    duration = this->duration;
   }
   int sample_count = static_cast<int>(sample_rate * duration);
 
@@ -17,10 +18,11 @@ void AudioManager::generateSampleArray(std::vector<short> samples, int sample_ra
 double AudioManager::generateFrequencies(std::vector<float> frequencies, double min_freq, double max_freq, int n_points) {
   int lcm_num = n_points;
   int gcd_den = min_freq * n_points;
+  frequencies.resize(n_points);
   for (int i = 0; i < n_points; i++) {
     float numerator = i * (max_freq - min_freq) + min_freq * n_points;
     float denominator = n_points;
-    frequencies[i] = numerator / denominator; 
+    frequencies.at(i) = numerator / denominator; 
 
     // Period is 1 / f, so flip numerator and denominator
     // T = lcm(d1, d2, ... dn) / gcd(n1, n2, ..., nn) | fi = ni / di

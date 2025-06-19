@@ -1,24 +1,8 @@
-#include "../include/hilbert.hpp"
+#include "hilbert.hpp"
 #include "opencv2/core/mat.hpp"
 #include <cmath>
-#include <string>
-#include <sstream>
 #include <iostream>
 
-struct Pair {
-  int x;
-  int y;
-
-  Pair() : x(0), y(0) {}
-  Pair(int x, int y) : x(x), y(y) {}
-  Pair(const Pair &p) : x(p.x), y(p.y) {}
-
-  std::string toString() {
-    std::stringstream res;
-    res << "(" << x << ", " << y << ")";
-    return res.str();
-  }
-};
 
 Hilbert::Hilbert(int order) {
   this->order = order;
@@ -99,59 +83,3 @@ void Hilbert::generateHilbert() {
     hilbert.at(i) = getCoord(i);
   }
 }
-
-template<typename T>
-std::vector<T> Hilbert::toHilbert(std::vector<std::vector<T>> arr) {
-  int len = arr.size();
-  int wid = arr.at(0).size();
-  if (len != wid) {
-    std::cerr << "ERROR (toHilbert): Non-square array passed to toHilbert" << std::endl;
-    return;
-  }
-
-  int size = len * wid;
-
-  if (size != this->n_points) {
-    std::cerr << "ERROR (toHilbert): 2D array passed is not same size as order " << this->order << " Hilbert curve" << std::endl << "Array passed is of size: " << len << " by " << wid;
-    return;
-  }
-
-  std::vector<T> res(this->n_points);
-  for (int i = 0; i < this->n_points; i++) {
-    Pair coord = this->hilbert.at(i);
-    res.at(i) = arr.at(coord.y).at(coord.x);
-  }
-
-  return res;
-}
-
-template<typename T>
-std::vector<T> Hilbert::toHilbert(std::vector<T> arr) {
-  if (arr.size() != this->n_points) {
-    std::cerr << "ERROR (toHilbert): 1D array passed is not same size as order " << this->order << " Hilbert curve" << std::endl;
-    return;
-  }
-
-  std::vector<T> res(this->n_points);
-  for (int i = 0; i < this->n_points; i++) {
-    Pair coord = this->hilbert.at(i);
-    int index = coord.y * std::pow(2, this->order) + coord.x;
-    res.at(i) = arr.at(index);
-  }
-
-  return res;
-}
-
-std::vector<uchar> Hilbert::toHilbert(cv::Mat arr) {
-  std::vector<uchar> res(this->n_points);
-  for (int i = 0; i < this->n_points; i++) {
-    Pair coord = this->hilbert.at(i);
-    res.at(i) = arr.at<uchar>(coord.x, coord.y);
-  }
-  return res;
-}
-
-
-
-
-

@@ -2,10 +2,7 @@
 #define CAMERADEPTH_H
 
 #include "settings.hpp"
-#include <opencv2/core/cvstd_wrapper.hpp>
-#include <opencv2/calib3d.hpp>
-#include <opencv2/core/mat.hpp>
-#include <opencv2/videoio.hpp>
+#include <opencv4/opencv2/opencv.hpp>
 
 struct CalibrationMaps {
   cv::Mat left_map1;

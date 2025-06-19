@@ -14,8 +14,8 @@
 #include <vector>
 class SightBySound {
   private:
-    std::string settings_path;
     Settings settings;
+    std::string settings_path;
     AudioManager audio_manager;
     CameraDepth camera_depth;
     Hilbert hilbert;
@@ -27,6 +27,7 @@ class SightBySound {
     std::mutex lr_img_mutex;
     std::mutex img_mutex;
     std::mutex audio_mutex;
+    std::mutex print_mutex;
     std::vector<ALuint> free_buffers;
     ALuint source;
     ALCdevice *device;
@@ -35,6 +36,7 @@ class SightBySound {
     int max_buffer;
     int sample_rate;
     float duration;
+    bool debug_print;
 
     void imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_img_queue, sem_t &lr_img_sem, std::mutex &lr_img_mutex);
     void depthGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_img_queue, sem_t &lr_img_sem, std::mutex &lr_img_mutex,
@@ -42,9 +44,50 @@ class SightBySound {
     void audioGen(Hilbert hilbert, AudioManager audio_manager, std::queue<cv::Mat> &img_queue, sem_t &img_sem, std::mutex &img_mutex,
                   std::vector<ALuint>&free_buffers, ALuint &source, std::mutex &audio_mutex, sem_t &audio_sem);
     void audioPlay(AudioManager audio_manager, std::vector<ALuint> &free_buffers, ALuint &source, std::mutex &audio_mutex, sem_t &audio_sem);
+    void debugPrint(const std::string str);
 
   public: 
-    SightBySound(const std::string settings_path);
+    SightBySound(const std::string &settings_path) : settings(settings_path), audio_manager(settings), camera_depth(settings), hilbert(settings) {
+      this->debug_print = settings.debug_print;
+      this->debugPrint("Settings finished");
+      this->settings_path = settings_path;
+      this->sample_rate = settings.sample_rate;
+      this->duration = settings.duration;
+
+      // Set up openAL
+      ALCdevice *device = nullptr;
+      ALCcontext *context = nullptr;
+
+      device = alcOpenDevice(nullptr);
+      if (!device) {
+        std::cerr << "ERROR: Could not open sound device." << std::endl;
+        return;
+      }
+
+      context = alcCreateContext(device, nullptr);
+      if (!context || !alcMakeContextCurrent(context)) {
+        std::cerr << "ERROR: Could not create or set context" << std::endl;
+        if (context) 
+          alcDestroyContext(context);
+        alcCloseDevice(device);
+        return;
+      }
+
+      this->device = device;
+      this->context = context;
+
+      alGenSources(1, &this->source);
+      this->debugPrint("Finished OpenAL setup");
+      
+      sem_init(&this->lr_img_sem, 0, 0);
+      sem_init(&this->img_sem, 0, 0);
+      sem_init(&this->audio_sem, 0, 0);
+
+      this->free_buffers.resize(this->settings.max_buffer);
+
+      this->n_runs = settings.n_runs;
+    };
+
     ~SightBySound();
     void run();
 };

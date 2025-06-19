@@ -1,4 +1,4 @@
-#include "../include/cameradepth.hpp"
+#include "cameradepth.hpp"
 #include "opencv2/core/persistence.hpp"
 #include "opencv2/core/types.hpp"
 #include <opencv2/imgproc.hpp>

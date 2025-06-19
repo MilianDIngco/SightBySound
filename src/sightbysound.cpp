@@ -1,53 +1,18 @@
-#include "../include/sightbysound.hpp"
+#include "sightbysound.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
 #include <chrono>
 #include <iostream>
 #include <mutex>
+#include <opencv2/core/hal/interface.h>
 #include <semaphore.h>
 #include <thread>
 
-SightBySound::SightBySound(const std::string settings_path) {
-  this->settings = Settings(settings_path);
-  this->settings_path = settings_path;
-  
-  this->hilbert = Hilbert(this->settings);
-  this->audio_manager = AudioManager(this->settings);
-  this->camera_depth = CameraDepth(this->settings);
-  this->sample_rate = settings.sample_rate;
-  this->duration = settings.duration;
-
-  // Set up openAL
-  ALCdevice *device = nullptr;
-  ALCcontext *context = nullptr;
-
-  device = alcOpenDevice(nullptr);
-  if (!device) {
-    std::cerr << "ERROR: Could not open sound device." << std::endl;
-    return;
+void SightBySound::debugPrint(const std::string str) {
+  if (this->debug_print) {
+    std::lock_guard<std::mutex> lock(this->print_mutex);
+    std::cout << str << std::endl;
   }
-
-  context = alcCreateContext(device, nullptr);
-  if (!context || !alcMakeContextCurrent(context)) {
-    std::cerr << "ERROR: Could not create or set context" << std::endl;
-    if (context) 
-      alcDestroyContext(context);
-    alcCloseDevice(device);
-    return;
-  }
-
-  this->device = device;
-  this->context = context;
-
-  alGenSources(1, &this->source);
-  
-  sem_init(&this->lr_img_sem, 0, 0);
-  sem_init(&this->img_sem, 0, 0);
-  sem_init(&this->audio_sem, 0, 0);
-
-  this->free_buffers.resize(this->settings.max_buffer);
-
-  this->n_runs = settings.n_runs;
 }
 
 SightBySound::~SightBySound() {
@@ -62,6 +27,8 @@ SightBySound::~SightBySound() {
 }
 
 void SightBySound::run() {
+
+  this->debugPrint("Starting threads");
 
   // Initialize threads
   std::thread img_gen([&]() {
@@ -83,9 +50,13 @@ void SightBySound::run() {
   });
 
   img_gen.join();
+  this->debugPrint("Image gen finished");
   dep_gen.join();
+  this->debugPrint("Depth gen finished");
   aud_gen.join();
+  this->debugPrint("Audio gen finished");
   aud_ply.join();
+  this->debugPrint("Audio play finished");
 }
 
 void SightBySound::imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_img_queue, sem_t &lr_img_sem, std::mutex &lr_img_mutex) 
@@ -159,6 +130,7 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
 
   for (int i = 0; i < this->n_runs; i++) {
     cv::Mat image;
+    std::vector<uchar> image_vector;
     std::vector<uchar> pixel_values;
 
     sem_wait(&img_sem);
@@ -168,7 +140,8 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
       img_queue.pop();
     }
 
-    pixel_values = hilbert.toHilbert(image);
+    image_vector.assign(image.begin<uchar>(), image.end<uchar>());
+    pixel_values = hilbert.toHilbert(image_vector);
 
     std::vector<float> volumes(pixel_values.size());
     for (int i = 0; i < volumes.size(); i++) {
