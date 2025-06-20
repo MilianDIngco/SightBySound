@@ -1,11 +1,12 @@
 i order 4
 d min_freq 30
-d max_freq 200
+d max_freq 300
 d duration .1
 i sample_rate 22000
-d volume 1
-b save_img 0
-i n_runs 20
+d volume 10
+b save_img 1
+s save_img_path ./images/
+i n_runs 2000
 d fade_percent 0.1
 s camera_calibration_path 415.yml
 s right_camera_path /dev/v4l/by-path/pci-0000:08:00.3-usb-0:1:1.0-video-index0

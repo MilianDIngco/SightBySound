@@ -14,6 +14,7 @@ class Settings {
     int sample_rate;
     double volume;
     bool save_img;
+    std::string save_img_path;
     int n_runs;
     double fade_percent;
     std::string camera_calibration_path;

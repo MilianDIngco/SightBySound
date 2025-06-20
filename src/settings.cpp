@@ -4,6 +4,7 @@
 #include <sstream>
 #include <filesystem>
 #include <stdexcept>
+#include <string>
 
 Settings::Settings(const std::string &settings_path) {
   this->loadFile(settings_path);
@@ -83,6 +84,7 @@ void Settings::loadFile(const std::string &filepath) {
     this->sample_rate = this->get<int>("sample_rate");
     this->volume = this->get<double>("volume");
     this->save_img = this->get<bool>("save_img");
+    this->save_img_path = this->get<std::string>("save_img_path");
     this->n_runs = this->get<int>("n_runs");
     this->fade_percent = this->get<double>("fade_percent");
     this->camera_calibration_path = this->get<std::string>("camera_calibration_path");
