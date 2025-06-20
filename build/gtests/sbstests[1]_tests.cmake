@@ -1,7 +1,0 @@
-add_test( HilbertTest.toHilbert2D /home/milianingco/Research/SBS/build/gtests/sbstests [==[--gtest_filter=HilbertTest.toHilbert2D]==] --gtest_also_run_disabled_tests)
-set_tests_properties( HilbertTest.toHilbert2D PROPERTIES WORKING_DIRECTORY /home/milianingco/Research/SBS/build/gtests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test( HilbertTest.toHilbert1D /home/milianingco/Research/SBS/build/gtests/sbstests [==[--gtest_filter=HilbertTest.toHilbert1D]==] --gtest_also_run_disabled_tests)
-set_tests_properties( HilbertTest.toHilbert1D PROPERTIES WORKING_DIRECTORY /home/milianingco/Research/SBS/build/gtests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-add_test( HilbertTest.toHilbertMat /home/milianingco/Research/SBS/build/gtests/sbstests [==[--gtest_filter=HilbertTest.toHilbertMat]==] --gtest_also_run_disabled_tests)
-set_tests_properties( HilbertTest.toHilbertMat PROPERTIES WORKING_DIRECTORY /home/milianingco/Research/SBS/build/gtests SKIP_REGULAR_EXPRESSION [==[\[  SKIPPED \]]==])
-set( sbstests_TESTS HilbertTest.toHilbert2D HilbertTest.toHilbert1D HilbertTest.toHilbertMat)

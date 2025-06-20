@@ -83,14 +83,30 @@ gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/sbstests.dir/test_hilbert.cpp.s"
 	cd /home/milianingco/Research/SBS/build/gtests && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/milianingco/Research/SBS/gtests/test_hilbert.cpp -o CMakeFiles/sbstests.dir/test_hilbert.cpp.s
 
+gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o: gtests/CMakeFiles/sbstests.dir/flags.make
+gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o: ../gtests/test_settings.cpp
+gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o: gtests/CMakeFiles/sbstests.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --progress-dir=/home/milianingco/Research/SBS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o"
+	cd /home/milianingco/Research/SBS/build/gtests && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o -MF CMakeFiles/sbstests.dir/test_settings.cpp.o.d -o CMakeFiles/sbstests.dir/test_settings.cpp.o -c /home/milianingco/Research/SBS/gtests/test_settings.cpp
+
+gtests/CMakeFiles/sbstests.dir/test_settings.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Preprocessing CXX source to CMakeFiles/sbstests.dir/test_settings.cpp.i"
+	cd /home/milianingco/Research/SBS/build/gtests && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E /home/milianingco/Research/SBS/gtests/test_settings.cpp > CMakeFiles/sbstests.dir/test_settings.cpp.i
+
+gtests/CMakeFiles/sbstests.dir/test_settings.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green "Compiling CXX source to assembly CMakeFiles/sbstests.dir/test_settings.cpp.s"
+	cd /home/milianingco/Research/SBS/build/gtests && /usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S /home/milianingco/Research/SBS/gtests/test_settings.cpp -o CMakeFiles/sbstests.dir/test_settings.cpp.s
+
 # Object files for target sbstests
 sbstests_OBJECTS = \
-"CMakeFiles/sbstests.dir/test_hilbert.cpp.o"
+"CMakeFiles/sbstests.dir/test_hilbert.cpp.o" \
+"CMakeFiles/sbstests.dir/test_settings.cpp.o"
 
 # External object files for target sbstests
 sbstests_EXTERNAL_OBJECTS =
 
 gtests/sbstests: gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.o
+gtests/sbstests: gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o
 gtests/sbstests: gtests/CMakeFiles/sbstests.dir/build.make
 gtests/sbstests: libsbs-classes.a
 gtests/sbstests: lib/libgtest_main.a
@@ -150,7 +166,7 @@ gtests/sbstests: /usr/lib/x86_64-linux-gnu/libopencv_imgproc.so.4.5.4d
 gtests/sbstests: /usr/lib/x86_64-linux-gnu/libopencv_core.so.4.5.4d
 gtests/sbstests: lib/libgtest.a
 gtests/sbstests: gtests/CMakeFiles/sbstests.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/milianingco/Research/SBS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable sbstests"
+	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --green --bold --progress-dir=/home/milianingco/Research/SBS/build/CMakeFiles --progress-num=$(CMAKE_PROGRESS_3) "Linking CXX executable sbstests"
 	cd /home/milianingco/Research/SBS/build/gtests && $(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/sbstests.dir/link.txt --verbose=$(VERBOSE)
 	cd /home/milianingco/Research/SBS/build/gtests && /usr/bin/cmake -D TEST_TARGET=sbstests -D TEST_EXECUTABLE=/home/milianingco/Research/SBS/build/gtests/sbstests -D TEST_EXECUTOR= -D TEST_WORKING_DIR=/home/milianingco/Research/SBS/build/gtests -D TEST_EXTRA_ARGS= -D TEST_PROPERTIES= -D TEST_PREFIX= -D TEST_SUFFIX= -D TEST_FILTER= -D NO_PRETTY_TYPES=FALSE -D NO_PRETTY_VALUES=FALSE -D TEST_LIST=sbstests_TESTS -D CTEST_FILE=/home/milianingco/Research/SBS/build/gtests/sbstests[1]_tests.cmake -D TEST_DISCOVERY_TIMEOUT=5 -D TEST_XML_OUTPUT_DIR= -P /usr/share/cmake-3.22/Modules/GoogleTestAddTests.cmake
 

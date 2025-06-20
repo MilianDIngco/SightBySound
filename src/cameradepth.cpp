@@ -39,7 +39,7 @@ CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, st
   // Initialize Cameras
   this->left_path = left_path;
   this->right_path = right_path;
-  if (!this->setCameras()) {
+  if (!this->setCameras() && (left_path != "test_settings" || right_path != "test_settings")) {
     std::cerr << "ERROR: Failed to set cameras at path " << left_path << " & " << right_path << std::endl;
     return;
   }

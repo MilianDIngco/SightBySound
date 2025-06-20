@@ -1,9 +1,12 @@
 sbstests_NOT_BUILT 0 0
 AudioManagerTest.someTest 31 0.000119105
 CameraDepthTest.captureImage 31 8.21277e-05
-HilbertTest.toHilbert2D 20 0.000171282
+HilbertTest.toHilbert2D 27 0.00241667
 SettingsTest.loadFile 30 9.58048e-05
 SightBySoundTest.testing 31 8.10486e-05
-HilbertTest.toHilbert1D 13 0.00021382
-HilbertTest.toHilbertMat 3 0.000986236
+HilbertTest.toHilbert1D 20 0.00329519
+HilbertTest.toHilbertMat 10 0.00630202
+SettingsTest.audiomanager_setup 4 0.0159675
+SettingsTest.cameradepth_setup 6 0.157741
+SettingsTest.hilbert_setup 6 0.010463
 ---

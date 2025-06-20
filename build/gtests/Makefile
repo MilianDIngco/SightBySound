@@ -209,6 +209,30 @@ test_hilbert.cpp.s:
 	cd /home/milianingco/Research/SBS/build && $(MAKE) $(MAKESILENT) -f gtests/CMakeFiles/sbstests.dir/build.make gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.s
 .PHONY : test_hilbert.cpp.s
 
+test_settings.o: test_settings.cpp.o
+.PHONY : test_settings.o
+
+# target to build an object file
+test_settings.cpp.o:
+	cd /home/milianingco/Research/SBS/build && $(MAKE) $(MAKESILENT) -f gtests/CMakeFiles/sbstests.dir/build.make gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o
+.PHONY : test_settings.cpp.o
+
+test_settings.i: test_settings.cpp.i
+.PHONY : test_settings.i
+
+# target to preprocess a source file
+test_settings.cpp.i:
+	cd /home/milianingco/Research/SBS/build && $(MAKE) $(MAKESILENT) -f gtests/CMakeFiles/sbstests.dir/build.make gtests/CMakeFiles/sbstests.dir/test_settings.cpp.i
+.PHONY : test_settings.cpp.i
+
+test_settings.s: test_settings.cpp.s
+.PHONY : test_settings.s
+
+# target to generate assembly for a file
+test_settings.cpp.s:
+	cd /home/milianingco/Research/SBS/build && $(MAKE) $(MAKESILENT) -f gtests/CMakeFiles/sbstests.dir/build.make gtests/CMakeFiles/sbstests.dir/test_settings.cpp.s
+.PHONY : test_settings.cpp.s
+
 # Help Target
 help:
 	@echo "The following are some of the valid targets for this Makefile:"
@@ -226,6 +250,9 @@ help:
 	@echo "... test_hilbert.o"
 	@echo "... test_hilbert.i"
 	@echo "... test_hilbert.s"
+	@echo "... test_settings.o"
+	@echo "... test_settings.i"
+	@echo "... test_settings.s"
 .PHONY : help
 
 

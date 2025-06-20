@@ -8,17 +8,18 @@
 #include "settings.hpp"
 #include <AL/al.h>
 #include <AL/alc.h>
+#include <memory>
 #include <semaphore.h>
 #include <queue>
 #include <string>
 #include <vector>
 class SightBySound {
   private:
-    Settings settings;
     std::string settings_path;
-    AudioManager audio_manager;
-    CameraDepth camera_depth;
-    Hilbert hilbert;
+    std::unique_ptr<Settings> settings;
+    std::unique_ptr<AudioManager> audio_manager;
+    std::unique_ptr<CameraDepth> camera_depth;
+    std::unique_ptr<Hilbert> hilbert;
     std::queue<cv::Mat> lr_img_queue;
     std::queue<cv::Mat> img_queue;
     sem_t lr_img_sem;
@@ -34,8 +35,6 @@ class SightBySound {
     ALCcontext *context;
     int n_runs;
     int max_buffer;
-    int sample_rate;
-    float duration;
     bool debug_print;
 
     void imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_img_queue, sem_t &lr_img_sem, std::mutex &lr_img_mutex);
@@ -47,12 +46,18 @@ class SightBySound {
     void debugPrint(const std::string str);
 
   public: 
-    SightBySound(const std::string &settings_path) : settings(settings_path), audio_manager(settings), camera_depth(settings), hilbert(settings) {
-      this->debug_print = settings.debug_print;
-      this->debugPrint("Settings finished");
+    SightBySound(const std::string &settings_path) {
       this->settings_path = settings_path;
-      this->sample_rate = settings.sample_rate;
-      this->duration = settings.duration;
+
+      // Set up classes
+      this->settings = std::make_unique<Settings>(settings_path);
+      this->debugPrint("Settings finished");
+      this->audio_manager = std::make_unique<AudioManager>(*this->settings);
+      this->camera_depth = std::make_unique<CameraDepth>(*this->settings);
+      this->hilbert = std::make_unique<Hilbert>(*this->settings);
+
+      // Set up instance variables
+      this->debug_print = settings->debug_print;
 
       // Set up openAL
       ALCdevice *device = nullptr;
@@ -83,9 +88,9 @@ class SightBySound {
       sem_init(&this->img_sem, 0, 0);
       sem_init(&this->audio_sem, 0, 0);
 
-      this->free_buffers.resize(this->settings.max_buffer);
+      this->free_buffers.resize(this->settings->max_buffer);
 
-      this->n_runs = settings.n_runs;
+      this->n_runs = settings->n_runs;
     };
 
     ~SightBySound();

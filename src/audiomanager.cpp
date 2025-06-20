@@ -3,7 +3,7 @@
 #include <numeric>
 #include <iostream>
 
-void AudioManager::generateSampleArray(std::vector<short> samples, int sample_rate, float duration) {
+void AudioManager::generateSampleArray(std::vector<short> &samples, int sample_rate, float duration) {
   if (sample_rate == -1) {
     sample_rate = this->sample_rate;
   }
@@ -15,7 +15,7 @@ void AudioManager::generateSampleArray(std::vector<short> samples, int sample_ra
   samples.resize(sample_count);
 }
 
-double AudioManager::generateFrequencies(std::vector<float> frequencies, double min_freq, double max_freq, int n_points) {
+double AudioManager::generateFrequencies(std::vector<float> &frequencies, double min_freq, double max_freq, int n_points) {
   int lcm_num = n_points;
   int gcd_den = min_freq * n_points;
   frequencies.resize(n_points);
@@ -32,7 +32,7 @@ double AudioManager::generateFrequencies(std::vector<float> frequencies, double 
   return (double)lcm_num / gcd_den;
 }
 
-void AudioManager::generateSines(std::vector<short> samples, std::vector<float> volumes, int sample_rate, int phase) {
+void AudioManager::generateSines(std::vector<short> &samples, std::vector<float> volumes, int sample_rate, int phase) {
   if (sample_rate == -1) {
     sample_rate = this->sample_rate;
   }
@@ -64,5 +64,5 @@ AudioManager::AudioManager(int sample_rate, float duration, double min_freq, dou
   this->volume = volume;
 
   int n_points = std::pow(2, 2 * order);
-  this->generateFrequencies(this->frequencies, this->min_freq, this->max_freq, n_points);
+  this->period = this->generateFrequencies(this->frequencies, this->min_freq, this->max_freq, n_points);
 }

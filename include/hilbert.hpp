@@ -38,7 +38,6 @@ class Hilbert {
 
   public:
     Hilbert(int order);
-    Hilbert() : Hilbert(3) {};
     Hilbert(Settings settings) : Hilbert(settings.order) {};
 
     template<typename T>
@@ -104,6 +103,8 @@ class Hilbert {
       return res;
     };
     */
+    int get_order() { return this->order; };
+    int get_n_points() { return this->n_points; };
 };
 
 #endif // !HILBERT_H

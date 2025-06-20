@@ -32,21 +32,21 @@ void SightBySound::run() {
 
   // Initialize threads
   std::thread img_gen([&]() {
-    this->imageGen(this->camera_depth, this->lr_img_queue, this->lr_img_sem, this->lr_img_mutex);
+    this->imageGen(*this->camera_depth, this->lr_img_queue, this->lr_img_sem, this->lr_img_mutex);
   });
 
   std::thread dep_gen([&]() {
-    this->depthGen(this->camera_depth, this->lr_img_queue, this->lr_img_sem, this->lr_img_mutex,
+    this->depthGen(*this->camera_depth, this->lr_img_queue, this->lr_img_sem, this->lr_img_mutex,
              this->img_queue, this->img_sem, this->img_mutex);
   });
 
   std::thread aud_gen([&]() {
-    this->audioGen(this->hilbert, this->audio_manager, this->img_queue, this->img_sem, this->img_mutex, 
+    this->audioGen(*this->hilbert, *this->audio_manager, this->img_queue, this->img_sem, this->img_mutex, 
              this->free_buffers, this->source, this->audio_mutex, this->audio_sem);
   });
 
   std::thread aud_ply([&]() {
-    this->audioPlay(this->audio_manager, this->free_buffers, this->source, this->audio_mutex, this->audio_sem);
+    this->audioPlay(*this->audio_manager, this->free_buffers, this->source, this->audio_mutex, this->audio_sem);
   });
 
   img_gen.join();
@@ -171,7 +171,7 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
         }
       }
 
-      alBufferData(buffer, AL_FORMAT_MONO16, samples.data(), samples.size() * sizeof(short), this->sample_rate);
+      alBufferData(buffer, AL_FORMAT_MONO16, samples.data(), samples.size() * sizeof(short), audio_manager.get_sample_rate());
       alSourceQueueBuffers(source, 1, &buffer);
     }
     sem_post(&audio_sem);

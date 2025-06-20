@@ -9,6 +9,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
   "/home/milianingco/Research/SBS/gtests/test_hilbert.cpp" "gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.o" "gcc" "gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.o.d"
+  "/home/milianingco/Research/SBS/gtests/test_settings.cpp" "gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o" "gcc" "gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o.d"
   )
 
 # Targets to which this target links.

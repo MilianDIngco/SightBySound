@@ -1,6 +1,7 @@
 #include <cmath>
 #include <gtest/gtest.h>
 #include "hilbert.hpp"
+#include <memory>
 #include <opencv2/core/hal/interface.h>
 #include <opencv2/core/mat.hpp>
 #include <vector>
@@ -11,10 +12,10 @@ using vec1Duchar = std::vector<uchar>;
 
 class HilbertTest : public testing::Test {
   protected:
-    Hilbert order0;
-    Hilbert order1;
-    Hilbert order2;
-    Hilbert order3;
+    std::unique_ptr<Hilbert> order0;
+    std::unique_ptr<Hilbert> order1;
+    std::unique_ptr<Hilbert> order2;
+    std::unique_ptr<Hilbert> order3;
 
     vec2D vec0 = {
       {0}
@@ -45,7 +46,7 @@ class HilbertTest : public testing::Test {
     vec1D sol2;
     vec1D sol3;
     
-    void SetUp() {
+    void SetUp() override {
       sol0.resize(std::pow(2, 2 * 0));
       sol1.resize(std::pow(2, 2 * 1));
       sol2.resize(std::pow(2, 2 * 2));
@@ -63,22 +64,23 @@ class HilbertTest : public testing::Test {
         this->sol3.at(i) = i;
       }
 
-      this->order0 = Hilbert(0);
-      this->order1 = Hilbert(1);
-      this->order2 = Hilbert(2);
-      this->order3 = Hilbert(3);
+      this->order0 = std::make_unique<Hilbert>(0);
+      this->order1 = std::make_unique<Hilbert>(1);
+      this->order2 = std::make_unique<Hilbert>(2);
+      this->order3 = std::make_unique<Hilbert>(3);
+
     }
 
 };
 
 TEST_F(HilbertTest, toHilbert2D) {
-  vec1D res0 = order0.toHilbert(vec0);
+  vec1D res0 = order0->toHilbert(vec0);
   EXPECT_EQ(res0.size(), std::pow(2, 2 * 0));
-  vec1D res1 = order1.toHilbert(vec1);
+  vec1D res1 = order1->toHilbert(vec1);
   EXPECT_EQ(res1.size(), std::pow(2, 2 * 1));
-  vec1D res2 = order2.toHilbert(vec2);
+  vec1D res2 = order2->toHilbert(vec2);
   EXPECT_EQ(res2.size(), std::pow(2, 2 * 2));
-  vec1D res3 = order3.toHilbert(vec3);
+  vec1D res3 = order3->toHilbert(vec3);
   EXPECT_EQ(res3.size(), std::pow(2, 2 * 3));
 
   for (int i = 0; i < res0.size(); i++) {
@@ -125,13 +127,13 @@ TEST_F(HilbertTest, toHilbert1D) {
   }
 
   // Test results
-  vec1D res0 = order0.toHilbert(vec01D);
+  vec1D res0 = order0->toHilbert(vec01D);
   EXPECT_EQ(res0.size(), std::pow(2, 2 * 0));
-  vec1D res1 = order1.toHilbert(vec11D);
+  vec1D res1 = order1->toHilbert(vec11D);
   EXPECT_EQ(res1.size(), std::pow(2, 2 * 1));
-  vec1D res2 = order2.toHilbert(vec21D);
+  vec1D res2 = order2->toHilbert(vec21D);
   EXPECT_EQ(res2.size(), std::pow(2, 2 * 2));
-  vec1D res3 = order3.toHilbert(vec31D);
+  vec1D res3 = order3->toHilbert(vec31D);
   EXPECT_EQ(res3.size(), std::pow(2, 2 * 3));
 
   for (int i = 0; i < res0.size(); i++) {
@@ -176,13 +178,13 @@ TEST_F(HilbertTest, toHilbertMat) {
   vec31D.assign(vec3mat.begin<uchar>(), vec3mat.end<uchar>());
 
   // Test results
-  vec1Duchar res0 = order0.toHilbert(vec01D);
+  vec1Duchar res0 = order0->toHilbert(vec01D);
   EXPECT_EQ(res0.size(), std::pow(2, 2 * 0));
-  vec1Duchar res1 = order1.toHilbert(vec11D);
+  vec1Duchar res1 = order1->toHilbert(vec11D);
   EXPECT_EQ(res1.size(), std::pow(2, 2 * 1));
-  vec1Duchar res2 = order2.toHilbert(vec21D);
+  vec1Duchar res2 = order2->toHilbert(vec21D);
   EXPECT_EQ(res2.size(), std::pow(2, 2 * 2));
-  vec1Duchar res3 = order3.toHilbert(vec31D);
+  vec1Duchar res3 = order3->toHilbert(vec31D);
   EXPECT_EQ(res3.size(), std::pow(2, 2 * 3));
 
   for (int i = 0; i < res0.size(); i++) {
