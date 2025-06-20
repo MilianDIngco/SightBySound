@@ -1,13 +1,13 @@
-Start testing: Jun 20 11:03 EDT
+Start testing: Jun 20 13:18 EDT
 ----------------------------------------------------------
 1/6 Testing: HilbertTest.toHilbert2D
 1/6 Test: HilbertTest.toHilbert2D
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbert2D" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"HilbertTest.toHilbert2D" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbert2D" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"HilbertTest.toHilbert2D" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = HilbertTest.toHilbert2D
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
@@ -20,21 +20,21 @@ Note: Google Test filter = HilbertTest.toHilbert2D
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.13 sec
+Test time =   0.06 sec
 ----------------------------------------------------------
 Test Passed.
-"HilbertTest.toHilbert2D" end time: Jun 20 11:03 EDT
+"HilbertTest.toHilbert2D" end time: Jun 20 13:18 EDT
 "HilbertTest.toHilbert2D" time elapsed: 00:00:00
 ----------------------------------------------------------
 
 2/6 Testing: HilbertTest.toHilbert1D
 2/6 Test: HilbertTest.toHilbert1D
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbert1D" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"HilbertTest.toHilbert1D" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbert1D" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"HilbertTest.toHilbert1D" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = HilbertTest.toHilbert1D
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
@@ -47,21 +47,21 @@ Note: Google Test filter = HilbertTest.toHilbert1D
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.13 sec
+Test time =   0.06 sec
 ----------------------------------------------------------
 Test Passed.
-"HilbertTest.toHilbert1D" end time: Jun 20 11:03 EDT
+"HilbertTest.toHilbert1D" end time: Jun 20 13:18 EDT
 "HilbertTest.toHilbert1D" time elapsed: 00:00:00
 ----------------------------------------------------------
 
 3/6 Testing: HilbertTest.toHilbertMat
 3/6 Test: HilbertTest.toHilbertMat
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbertMat" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"HilbertTest.toHilbertMat" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=HilbertTest.toHilbertMat" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"HilbertTest.toHilbertMat" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = HilbertTest.toHilbertMat
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
@@ -74,21 +74,21 @@ Note: Google Test filter = HilbertTest.toHilbertMat
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.13 sec
+Test time =   0.06 sec
 ----------------------------------------------------------
 Test Passed.
-"HilbertTest.toHilbertMat" end time: Jun 20 11:03 EDT
+"HilbertTest.toHilbertMat" end time: Jun 20 13:18 EDT
 "HilbertTest.toHilbertMat" time elapsed: 00:00:00
 ----------------------------------------------------------
 
 4/6 Testing: SettingsTest.audiomanager_setup
 4/6 Test: SettingsTest.audiomanager_setup
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=SettingsTest.audiomanager_setup" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"SettingsTest.audiomanager_setup" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=SettingsTest.audiomanager_setup" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"SettingsTest.audiomanager_setup" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = SettingsTest.audiomanager_setup
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
@@ -101,50 +101,50 @@ Note: Google Test filter = SettingsTest.audiomanager_setup
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.13 sec
+Test time =   0.06 sec
 ----------------------------------------------------------
 Test Passed.
-"SettingsTest.audiomanager_setup" end time: Jun 20 11:03 EDT
+"SettingsTest.audiomanager_setup" end time: Jun 20 13:18 EDT
 "SettingsTest.audiomanager_setup" time elapsed: 00:00:00
 ----------------------------------------------------------
 
 5/6 Testing: SettingsTest.cameradepth_setup
 5/6 Test: SettingsTest.cameradepth_setup
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=SettingsTest.cameradepth_setup" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"SettingsTest.cameradepth_setup" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=SettingsTest.cameradepth_setup" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"SettingsTest.cameradepth_setup" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = SettingsTest.cameradepth_setup
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
 [----------] 1 test from SettingsTest
 [ RUN      ] SettingsTest.cameradepth_setup
-[ WARN:0@1.521] global ./modules/videoio/src/cap_v4l.cpp (902) open VIDEOIO(V4L2:/dev/video0): can't open camera by index
+[ WARN:0] global ./modules/videoio/src/cap_v4l.cpp (890) open VIDEOIO(V4L2:/dev/video0): can't open camera by index
 ERROR: Failed to open right camera at path test_settings
-[       OK ] SettingsTest.cameradepth_setup (2510 ms)
-[----------] 1 test from SettingsTest (2510 ms total)
+[       OK ] SettingsTest.cameradepth_setup (599 ms)
+[----------] 1 test from SettingsTest (599 ms total)
 
 [----------] Global test environment tear-down
-[==========] 1 test from 1 test suite ran. (2510 ms total)
+[==========] 1 test from 1 test suite ran. (599 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   2.64 sec
+Test time =   0.67 sec
 ----------------------------------------------------------
 Test Passed.
-"SettingsTest.cameradepth_setup" end time: Jun 20 11:03 EDT
-"SettingsTest.cameradepth_setup" time elapsed: 00:00:02
+"SettingsTest.cameradepth_setup" end time: Jun 20 13:18 EDT
+"SettingsTest.cameradepth_setup" time elapsed: 00:00:00
 ----------------------------------------------------------
 
 6/6 Testing: SettingsTest.hilbert_setup
 6/6 Test: SettingsTest.hilbert_setup
-Command: "/home/SBS/SightBySound/build/gtests/sbstests" "--gtest_filter=SettingsTest.hilbert_setup" "--gtest_also_run_disabled_tests"
-Directory: /home/SBS/SightBySound/build/gtests
-"SettingsTest.hilbert_setup" start time: Jun 20 11:03 EDT
+Command: "/home/milianingco/Research/SBS/build/gtests/sbstests" "--gtest_filter=SettingsTest.hilbert_setup" "--gtest_also_run_disabled_tests"
+Directory: /home/milianingco/Research/SBS/build/gtests
+"SettingsTest.hilbert_setup" start time: Jun 20 13:18 EDT
 Output:
 ----------------------------------------------------------
-Running main() from /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc
+Running main() from /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc
 Note: Google Test filter = SettingsTest.hilbert_setup
 [==========] Running 1 test from 1 test suite.
 [----------] Global test environment set-up.
@@ -157,11 +157,11 @@ Note: Google Test filter = SettingsTest.hilbert_setup
 [==========] 1 test from 1 test suite ran. (0 ms total)
 [  PASSED  ] 1 test.
 <end of output>
-Test time =   0.13 sec
+Test time =   0.06 sec
 ----------------------------------------------------------
 Test Passed.
-"SettingsTest.hilbert_setup" end time: Jun 20 11:03 EDT
+"SettingsTest.hilbert_setup" end time: Jun 20 13:18 EDT
 "SettingsTest.hilbert_setup" time elapsed: 00:00:00
 ----------------------------------------------------------
 
-End testing: Jun 20 11:03 EDT
+End testing: Jun 20 13:18 EDT

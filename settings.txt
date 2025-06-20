@@ -5,11 +5,11 @@ d duration .1
 i sample_rate 22000
 d volume 1
 b save_img 0
-i n_runs 2000
+i n_runs 20
 d fade_percent 0.1
 s camera_calibration_path 415.yml
-s right_camera_path /dev/v4l/by-path/platform-xhci-hcd.1-usb-0:1:1.0-video-index0
-s left_camera_path /dev/v4l/by-path/platform-xhci-hcd.0-usb-0:1:1.0-video-index0
+s right_camera_path /dev/v4l/by-path/pci-0000:08:00.3-usb-0:1:1.0-video-index0
+s left_camera_path /dev/v4l/by-path/pci-0000:07:00.4-usb-0:1:1.0-video-index0
 i block_size 15
 i num_disparities 64
 i prefilter_cap 15

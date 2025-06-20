@@ -149,7 +149,7 @@ bool CameraDepth::setCameras(std::string left_path, std::string right_path) {
 
 bool CameraDepth::openCamera(cv::VideoCapture &cap, const std::string path) {
   int camera_index = getCameraIndex(path);
-  if (!cap.open(camera_index, cv::CAP_V4L2)) {
+  if (!cap.open(camera_index)) {
     return false;
   }
 

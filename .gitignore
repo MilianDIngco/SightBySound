@@ -4,6 +4,5 @@
 *.wav
 .vscode/
 .cache/
-build/
+.build/
 opencv_testing/
-main

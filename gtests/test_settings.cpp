@@ -9,7 +9,7 @@ class SettingsTest : public testing::Test {
   protected:
     std::unique_ptr<Settings> settings;
     void SetUp() override {
-      std::string settings_path = "/home/SBS/SightBySound/gtests/test_settings.txt";
+      std::string settings_path = "/home/milianingco/Research/SBS/gtests/test_settings.txt";
       this->settings = std::make_unique<Settings>(settings_path);
     }
 

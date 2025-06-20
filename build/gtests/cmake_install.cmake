@@ -1,4 +1,4 @@
-# Install script for directory: /home/SBS/SightBySound/gtests
+# Install script for directory: /home/milianingco/Research/SBS/gtests
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)

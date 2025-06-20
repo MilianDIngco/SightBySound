@@ -1,2 +1,2 @@
-/usr/bin/ar qc libsbs-classes.a "CMakeFiles/sbs-classes.dir/src/audiomanager.cpp.o" "CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o" "CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o" "CMakeFiles/sbs-classes.dir/src/settings.cpp.o" "CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o"
+/usr/bin/ar qc libsbs-classes.a CMakeFiles/sbs-classes.dir/src/audiomanager.cpp.o CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o CMakeFiles/sbs-classes.dir/src/settings.cpp.o CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o
 /usr/bin/ranlib libsbs-classes.a
