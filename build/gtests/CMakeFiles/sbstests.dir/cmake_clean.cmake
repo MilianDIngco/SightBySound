@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/sbstests.dir/test_audiomanager.cpp.o"
+  "CMakeFiles/sbstests.dir/test_audiomanager.cpp.o.d"
   "CMakeFiles/sbstests.dir/test_hilbert.cpp.o"
   "CMakeFiles/sbstests.dir/test_hilbert.cpp.o.d"
   "CMakeFiles/sbstests.dir/test_settings.cpp.o"

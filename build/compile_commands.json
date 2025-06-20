@@ -1,62 +1,80 @@
 [
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/audiomanager.cpp.o -c /home/milianingco/Research/SBS/src/audiomanager.cpp",
-  "file": "/home/milianingco/Research/SBS/src/audiomanager.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/audiomanager.cpp.o -c /home/SBS/SightBySound/src/audiomanager.cpp",
+  "file": "/home/SBS/SightBySound/src/audiomanager.cpp",
+  "output": "CMakeFiles/sbs-classes.dir/src/audiomanager.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o -c /home/milianingco/Research/SBS/src/cameradepth.cpp",
-  "file": "/home/milianingco/Research/SBS/src/cameradepth.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o -c /home/SBS/SightBySound/src/cameradepth.cpp",
+  "file": "/home/SBS/SightBySound/src/cameradepth.cpp",
+  "output": "CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o -c /home/milianingco/Research/SBS/src/hilbert.cpp",
-  "file": "/home/milianingco/Research/SBS/src/hilbert.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o -c /home/SBS/SightBySound/src/hilbert.cpp",
+  "file": "/home/SBS/SightBySound/src/hilbert.cpp",
+  "output": "CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/settings.cpp.o -c /home/milianingco/Research/SBS/src/settings.cpp",
-  "file": "/home/milianingco/Research/SBS/src/settings.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/settings.cpp.o -c /home/SBS/SightBySound/src/settings.cpp",
+  "file": "/home/SBS/SightBySound/src/settings.cpp",
+  "output": "CMakeFiles/sbs-classes.dir/src/settings.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o -c /home/milianingco/Research/SBS/src/sightbysound.cpp",
-  "file": "/home/milianingco/Research/SBS/src/sightbysound.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o -c /home/SBS/SightBySound/src/sightbysound.cpp",
+  "file": "/home/SBS/SightBySound/src/sightbysound.cpp",
+  "output": "CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/main.dir/src/main.cpp.o -c /home/milianingco/Research/SBS/src/main.cpp",
-  "file": "/home/milianingco/Research/SBS/src/main.cpp"
+  "directory": "/home/SBS/SightBySound/build",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -std=gnu++20 -o CMakeFiles/main.dir/src/main.cpp.o -c /home/SBS/SightBySound/src/main.cpp",
+  "file": "/home/SBS/SightBySound/src/main.cpp",
+  "output": "CMakeFiles/main.dir/src/main.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/_deps/googletest-build/googlemock",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/include -I/home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -std=c++20 -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
-  "file": "/home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/src/gmock-all.cc"
+  "directory": "/home/SBS/SightBySound/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/build/_deps/googletest-src/googlemock/include -I/home/SBS/SightBySound/build/_deps/googletest-src/googlemock -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/SBS/SightBySound/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/home/SBS/SightBySound/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/_deps/googletest-build/googlemock",
-  "command": "/usr/bin/c++  -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -std=c++20 -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
-  "file": "/home/milianingco/Research/SBS/build/_deps/googletest-src/googlemock/src/gmock_main.cc"
+  "directory": "/home/SBS/SightBySound/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googlemock/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googlemock -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/SBS/SightBySound/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/home/SBS/SightBySound/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/_deps/googletest-build/googletest",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -I/home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -std=c++20 -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest-all.cc",
-  "file": "/home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest-all.cc"
+  "directory": "/home/SBS/SightBySound/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -I/home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/_deps/googletest-build/googletest",
-  "command": "/usr/bin/c++  -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -std=c++20 -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc",
-  "file": "/home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/src/gtest_main.cc"
+  "directory": "/home/SBS/SightBySound/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=c++20 -Wall -Wshadow -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/home/SBS/SightBySound/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/gtests",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -std=gnu++20 -o CMakeFiles/sbstests.dir/test_hilbert.cpp.o -c /home/milianingco/Research/SBS/gtests/test_hilbert.cpp",
-  "file": "/home/milianingco/Research/SBS/gtests/test_hilbert.cpp"
+  "directory": "/home/SBS/SightBySound/build/gtests",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=gnu++20 -o CMakeFiles/sbstests.dir/test_audiomanager.cpp.o -c /home/SBS/SightBySound/gtests/test_audiomanager.cpp",
+  "file": "/home/SBS/SightBySound/gtests/test_audiomanager.cpp",
+  "output": "gtests/CMakeFiles/sbstests.dir/test_audiomanager.cpp.o"
 },
 {
-  "directory": "/home/milianingco/Research/SBS/build/gtests",
-  "command": "/usr/bin/c++  -I/home/milianingco/Research/SBS/include -I/usr/include/AL -isystem /usr/include/opencv4 -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest/include -isystem /home/milianingco/Research/SBS/build/_deps/googletest-src/googletest -std=gnu++20 -o CMakeFiles/sbstests.dir/test_settings.cpp.o -c /home/milianingco/Research/SBS/gtests/test_settings.cpp",
-  "file": "/home/milianingco/Research/SBS/gtests/test_settings.cpp"
+  "directory": "/home/SBS/SightBySound/build/gtests",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=gnu++20 -o CMakeFiles/sbstests.dir/test_hilbert.cpp.o -c /home/SBS/SightBySound/gtests/test_hilbert.cpp",
+  "file": "/home/SBS/SightBySound/gtests/test_hilbert.cpp",
+  "output": "gtests/CMakeFiles/sbstests.dir/test_hilbert.cpp.o"
+},
+{
+  "directory": "/home/SBS/SightBySound/build/gtests",
+  "command": "/usr/bin/c++  -I/home/SBS/SightBySound/include -I/usr/include/AL -isystem /usr/include/opencv4 -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest/include -isystem /home/SBS/SightBySound/build/_deps/googletest-src/googletest -std=gnu++20 -o CMakeFiles/sbstests.dir/test_settings.cpp.o -c /home/SBS/SightBySound/gtests/test_settings.cpp",
+  "file": "/home/SBS/SightBySound/gtests/test_settings.cpp",
+  "output": "gtests/CMakeFiles/sbstests.dir/test_settings.cpp.o"
 }
 ]

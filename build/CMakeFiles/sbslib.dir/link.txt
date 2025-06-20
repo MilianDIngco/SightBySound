@@ -1,2 +1,0 @@
-/usr/bin/ar qc libsbslib.a CMakeFiles/sbslib.dir/src/audiomanager.cpp.o CMakeFiles/sbslib.dir/src/cameradepth.cpp.o CMakeFiles/sbslib.dir/src/hilbert.cpp.o CMakeFiles/sbslib.dir/src/settings.cpp.o CMakeFiles/sbslib.dir/src/sightbysound.cpp.o
-/usr/bin/ranlib libsbslib.a
