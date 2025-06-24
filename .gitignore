@@ -4,4 +4,4 @@
 *.wav
 .vscode/
 .cache/
-.build/
+./build/
