@@ -8,7 +8,7 @@ b save_img 0
 s save_img_path ./images/
 i n_runs 2000
 d fade_percent 0.1
-s camera_calibration_path /home/milianingco/Research/SBS/gtests/415.yml
+s camera_calibration_path 415.yml
 s right_camera_path test_settings
 s left_camera_path test_settings
 i block_size 15

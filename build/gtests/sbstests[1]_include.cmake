@@ -1,5 +1,0 @@
-if(EXISTS "/home/milianingco/Research/SBS/build/gtests/sbstests[1]_tests.cmake")
-  include("/home/milianingco/Research/SBS/build/gtests/sbstests[1]_tests.cmake")
-else()
-  add_test(sbstests_NOT_BUILT sbstests_NOT_BUILT)
-endif()

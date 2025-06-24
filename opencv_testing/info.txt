@@ -1,2 +1,0 @@
-right index = 3
-left index = 1
