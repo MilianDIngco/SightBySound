@@ -1,7 +1,7 @@
-HilbertTest.toHilbert2D 1 0.0626708
-HilbertTest.toHilbert1D 1 0.0637848
-HilbertTest.toHilbertMat 1 0.0633392
-SettingsTest.audiomanager_setup 1 0.0623316
-SettingsTest.cameradepth_setup 1 0.665452
-SettingsTest.hilbert_setup 1 0.0629755
+HilbertTest.toHilbert2D 9 0.00725567
+HilbertTest.toHilbert1D 9 0.00715215
+HilbertTest.toHilbertMat 9 0.0072208
+SettingsTest.audiomanager_setup 3 0.0209248
+SettingsTest.cameradepth_setup 3 0.407122
+SettingsTest.hilbert_setup 9 0.00713905
 ---

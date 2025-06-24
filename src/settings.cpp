@@ -104,6 +104,7 @@ void Settings::loadFile(const std::string &filepath) {
     this->use_internearest = this->get<bool>("use_internearest");
     this->use_interarea = this->get<bool>("use_interarea");
     this->debug_print = this->get<bool>("debug_print");
+    this->n_cam_resets = this->get<int>("n_cam_resets");
   } catch (const std::out_of_range& e) {
     std::cerr << "ERROR: Missing settings key: " << e.what() << std::endl;
     return;

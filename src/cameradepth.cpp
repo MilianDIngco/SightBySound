@@ -1,23 +1,44 @@
 #include "cameradepth.hpp"
 #include "opencv2/core/persistence.hpp"
 #include "opencv2/core/types.hpp"
+#include <chrono>
 #include <opencv2/imgproc.hpp>
 #include <opencv2/core.hpp>
 #include <iostream>
 #include <regex>
+#include <thread>
 
-CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, std::string right_path, float prestereo_scale, int block_size, int num_disparities, int pre_filter_cap, int min_disparity, int texture_threshold, int uniqueness_ratio, int speckle_window_size, int speckle_range, int disp12maxdiff, int order, bool use_internearest, bool use_interarea) {
+CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, std::string right_path, float prestereo_scale, int block_size, int num_disparities, int pre_filter_cap, int min_disparity, int texture_threshold, int uniqueness_ratio, int speckle_window_size, int speckle_range, int disp12maxdiff, int order, bool use_internearest, bool use_interarea, int n_cam_resets) {
   // Initialize Calibration maps
   cv::FileStorage fs(calibration_path, cv::FileStorage::READ);
   if (!fs.isOpened()) {
     std::cerr << "ERROR: Failed to open calibration file at path " << calibration_path << std::endl;
     return;
   }
+
   cv::Mat left_map1, left_map2, right_map1, right_map2;
-  fs["left_map1"] >> left_map1;
-  fs["left_map2"] >> left_map2;
-  fs["right_map1"] >> right_map1;
-  fs["right_map2"] >> right_map2;
+  if (fs["left_map1"].empty()) {
+    std::cerr << "ERROR: Failed to open left map 1 from calibration file" << std::endl;
+    return;
+  } else 
+    fs["left_map1"] >> left_map1;
+
+  if (fs["left_map2"].empty()) {
+    std::cerr << "ERROR: Failed to open left map 2 from calibration file" << std::endl;
+    return;
+  } else 
+    fs["left_map2"] >> left_map2;
+  if (fs["right_map1"].empty()) {
+    std::cerr << "ERROR: Failed to open right map 1 from calibration file" << std::endl;
+    return;
+  } else 
+    fs["right_map1"] >> right_map1;
+  if (fs["right_map1"].empty()) {
+    std::cerr << "ERROR: Failed to open right map 2 from calibration file" << std::endl;
+    return;
+  } else 
+    fs["right_map2"] >> right_map2;
+
   this->maps = CalibrationMaps(left_map1, left_map2, right_map1, right_map2);
 
   // Initialize StereoBM ptr
@@ -35,6 +56,7 @@ CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, st
   this->num_disparities = num_disparities;
   this->use_internearest = use_internearest;
   this->use_interarea = use_interarea;
+  this->n_cam_resets = n_cam_resets;
 
   // Initialize Cameras
   this->left_path = left_path;
@@ -116,14 +138,20 @@ cv::Mat CameraDepth::getDepthImage(cv::Mat &left_frame, cv::Mat &right_frame) {
 }
 
 bool CameraDepth::resetCamera(cv::VideoCapture cam, const std::string path) {
-  cam.release();
+  for (int i = 0; i < this->n_cam_resets; i++) {
+    std::cout << "Trying to reset camera" << std::endl;
+    cam.release();
 
-  // Try to reopen at the path
-  if (!this->openCamera(cam, path)) {
-    std::cerr << "ERROR: Failed to reset camera" << std::endl;
-    return false;
+    // Try to reopen at the path
+    if (this->openCamera(cam, path)) {
+      return true;
+    }
+
+    std::this_thread::sleep_for(std::chrono::milliseconds(2000));
   }
-  return true;
+
+  std::cerr << "ERROR: Failed to reset camera" << std::endl;
+  return false;
 }
 
 bool CameraDepth::setCameras(std::string left_path, std::string right_path) {
@@ -148,9 +176,17 @@ bool CameraDepth::setCameras(std::string left_path, std::string right_path) {
 }
 
 bool CameraDepth::openCamera(cv::VideoCapture &cap, const std::string path) {
+  cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
+  cap.set(cv::CAP_PROP_OPEN_TIMEOUT_MSEC, 3000);
+  cap.set(cv::CAP_PROP_READ_TIMEOUT_MSEC, 3000);
+
   int camera_index = getCameraIndex(path);
-  if (!cap.open(camera_index)) {
-    return false;
+  cap.open(camera_index, cv::CAP_V4L2);
+  if (!cap.isOpened()) {
+    cap.open(camera_index, cv::CAP_GSTREAMER); // Fallback to GStreamer
+  }
+  if (!cap.isOpened()) {
+    std::cerr << "ERROR: Failed to open camera" << std::endl;
   }
 
   cv::Mat mat;
@@ -160,7 +196,6 @@ bool CameraDepth::openCamera(cv::VideoCapture &cap, const std::string path) {
     return false;
   }
 
-  cap.set(cv::CAP_PROP_BUFFERSIZE, 1);
   return true;
 }
 

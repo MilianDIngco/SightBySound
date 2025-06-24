@@ -24,8 +24,11 @@ SightBySound::SightBySound(const std::string &settings_path) {
   this->settings = std::make_unique<Settings>(settings_path);
   this->debugPrint("Settings finished");
   this->audio_manager = std::make_unique<AudioManager>(*this->settings);
+  this->debugPrint("AudioManager finished");
   this->camera_depth = std::make_unique<CameraDepth>(*this->settings);
+  this->debugPrint("CameraDepth finished");
   this->hilbert = std::make_unique<Hilbert>(*this->settings);
+  this->debugPrint("Hilbert finished");
 
   // Set up instance variables
   this->debug_print = settings->debug_print;
@@ -56,7 +59,6 @@ SightBySound::SightBySound(const std::string &settings_path) {
   this->context = context;
 
   alGenSources(1, &this->source);
-  this->debugPrint("Finished OpenAL setup");
   
   sem_init(&this->lr_img_sem, 0, 0);
   sem_init(&this->img_sem, 0, 0);
@@ -73,6 +75,7 @@ SightBySound::SightBySound(const std::string &settings_path) {
   }
 
   this->n_runs = settings->n_runs;
+  this->debugPrint("Finished OpenAL setup");
 };
 
 SightBySound::~SightBySound() {
@@ -124,14 +127,14 @@ void SightBySound::run() {
     this->audioPlay(*this->audio_manager, this->free_buffers, this->source, this->audio_mutex, this->audio_sem);
   });
 
-  aud_ply.join();
-  this->debugPrint("Audio play finished");
-  aud_gen.join();
-  this->debugPrint("Audio gen finished");
-  dep_gen.join();
-  this->debugPrint("Depth gen finished");
   img_gen.join();
   this->debugPrint("Image gen finished");
+  dep_gen.join();
+  this->debugPrint("Depth gen finished");
+  aud_gen.join();
+  this->debugPrint("Audio gen finished");
+  aud_ply.join();
+  this->debugPrint("Audio play finished");
 }
 
 void SightBySound::imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_img_queue, sem_t &lr_img_sem, std::mutex &lr_img_mutex) 
@@ -143,7 +146,7 @@ void SightBySound::imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
   for (int i = 0; i < this->n_runs; i++) {
     cv::Mat left_frame, right_frame;
 
-    camera_depth.captureImages(left_frame, right_frame);
+    camera_depth.captureImages(left_frame, right_frame, true);
 
     if (this->save_img)
       cv::imwrite(save_path, left_frame);
@@ -165,7 +168,7 @@ void SightBySound::imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
       lr_img_queue.push(left_frame);
     }
 
-    this->debugPrint("ImageGen Posting");
+    this->debugPrint("Image posted");
 
     sem_post(&lr_img_sem);
   }
@@ -207,8 +210,7 @@ void SightBySound::depthGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
       img_queue.push(depth);
     }
 
-    this->debugPrint("DepthGen Posting");
-
+    this->debugPrint("Depth posted");
     sem_post(&img_sem);
   }
 }
@@ -242,7 +244,6 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
     audio_manager.generateSampleArray(samples);
     audio_manager.generateSines(samples, volumes);
 
-    this->debugPrint("audio generated");
     ALint buffers_queued;
     alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
     while (buffers_queued >= this->max_buffer) {
@@ -265,7 +266,7 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
       alBufferData(buffer, AL_FORMAT_MONO16, samples.data(), samples.size() * sizeof(short), audio_manager.get_sample_rate());
       alSourceQueueBuffers(source, 1, &buffer);
     }
-    this->debugPrint("AudioGen Posting");
+    this->debugPrint("Audio posted");
     sem_post(&audio_sem);
   }
 }
@@ -311,8 +312,7 @@ void SightBySound::audioPlay(AudioManager audio_manager, std::vector<ALuint> &fr
       }
     }
 
-    this->debugPrint("AudioPlay Done");
+    this->debugPrint("Audio played");
 
   }
-
 }

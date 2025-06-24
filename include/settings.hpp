@@ -34,6 +34,7 @@ class Settings {
     bool use_internearest;
     bool use_interarea;
     bool debug_print;
+    int n_cam_resets;
 
     using ValueType = std::variant<int, double, std::string, bool>;
     std::unordered_map<std::string, ValueType> settings_map;

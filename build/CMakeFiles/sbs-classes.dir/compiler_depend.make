@@ -705,7 +705,18 @@ CMakeFiles/sbs-classes.dir/src/cameradepth.cpp.o: ../src/cameradepth.cpp \
   /usr/include/c++/11/bits/regex.h \
   /usr/include/c++/11/bits/regex.tcc \
   /usr/include/c++/11/bits/regex_executor.h \
-  /usr/include/c++/11/bits/regex_executor.tcc
+  /usr/include/c++/11/bits/regex_executor.tcc \
+  /usr/include/c++/11/thread \
+  /usr/include/c++/11/stop_token \
+  /usr/include/c++/11/atomic \
+  /usr/include/c++/11/bits/std_thread.h \
+  /usr/include/c++/11/semaphore \
+  /usr/include/c++/11/bits/semaphore_base.h \
+  /usr/include/c++/11/bits/atomic_timed_wait.h \
+  /usr/include/c++/11/bits/this_thread_sleep.h \
+  /usr/include/x86_64-linux-gnu/sys/time.h \
+  /usr/include/semaphore.h \
+  /usr/include/x86_64-linux-gnu/bits/semaphore.h
 
 CMakeFiles/sbs-classes.dir/src/hilbert.cpp.o: ../src/hilbert.cpp \
   /usr/include/stdc-predef.h \
@@ -1736,14 +1747,6 @@ CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o: ../src/sightbysound.cpp \
   /usr/include/x86_64-linux-gnu/sys/time.h
 
 
-/usr/include/x86_64-linux-gnu/sys/time.h:
-
-/usr/include/c++/11/bits/atomic_timed_wait.h:
-
-/usr/include/c++/11/bits/semaphore_base.h:
-
-/usr/include/c++/11/atomic:
-
 /usr/include/AL/alc.h:
 
 /usr/include/AL/al.h:
@@ -1763,6 +1766,14 @@ CMakeFiles/sbs-classes.dir/src/sightbysound.cpp.o: ../src/sightbysound.cpp \
 /usr/include/x86_64-linux-gnu/c++/11/bits/basic_file.h:
 
 ../include/hilbert.hpp:
+
+/usr/include/x86_64-linux-gnu/sys/time.h:
+
+/usr/include/c++/11/bits/atomic_timed_wait.h:
+
+/usr/include/c++/11/bits/semaphore_base.h:
+
+/usr/include/c++/11/atomic:
 
 /usr/include/c++/11/bits/regex_executor.h:
 

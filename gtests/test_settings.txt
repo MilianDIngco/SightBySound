@@ -5,6 +5,7 @@ d duration .1
 i sample_rate 22000
 d volume 1
 b save_img 0
+s save_img_path ./images/
 i n_runs 2000
 d fade_percent 0.1
 s camera_calibration_path /home/milianingco/Research/SBS/gtests/415.yml
@@ -24,3 +25,4 @@ i max_buffer 2
 b use_internearest 1
 b use_interarea 0
 b debug_print 1
+i n_cam_resets 5
