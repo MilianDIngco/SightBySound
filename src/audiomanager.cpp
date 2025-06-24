@@ -1,7 +1,7 @@
 #include "audiomanager.hpp"
+#include "settings.hpp"
 #include <cmath>
 #include <numeric>
-#include <iostream>
 
 void AudioManager::generateSampleArray(std::vector<short> &samples, int sample_rate, float duration) {
   if (sample_rate == -1) {
@@ -55,14 +55,14 @@ void AudioManager::generateSines(std::vector<short> &samples, std::vector<float>
   }
 }
 
-AudioManager::AudioManager(int sample_rate, float duration, double min_freq, double max_freq, double fade_percent, double volume, int order) {
-  this->sample_rate = sample_rate;
-  this->duration = duration;
-  this->min_freq = min_freq;
-  this->max_freq = max_freq;
-  this->fade_percent = fade_percent;
-  this->volume = volume;
+AudioManager::AudioManager(Settings settings) {
+  this->sample_rate = settings.sample_rate;
+  this->duration = settings.duration;
+  this->min_freq = settings.min_freq;
+  this->max_freq = settings.max_freq;
+  this->fade_percent = settings.fade_percent;
+  this->volume = settings.volume;
 
-  int n_points = std::pow(2, 2 * order);
+  int n_points = std::pow(2, 2 * settings.order);
   this->period = this->generateFrequencies(this->frequencies, this->min_freq, this->max_freq, n_points);
 }

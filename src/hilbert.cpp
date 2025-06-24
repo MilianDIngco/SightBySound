@@ -1,14 +1,11 @@
 #include "hilbert.hpp"
-#include "opencv2/core/mat.hpp"
 #include <cmath>
-#include <iostream>
 
-
-Hilbert::Hilbert(int order) {
-  this->order = order;
-  hilbert.resize(std::pow(2, 2 * order));
+Hilbert::Hilbert(Settings settings) {
+  this->order = settings.order;
+  hilbert.resize(std::pow(2, 2 * settings.order));
   this->generateHilbert();
-  this->n_points = this->getNPoints(order);
+  this->n_points = this->getNPoints(settings.order);
 }
 
 int Hilbert::getNPoints(int order) {

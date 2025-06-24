@@ -8,11 +8,11 @@
 #include <regex>
 #include <thread>
 
-CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, std::string right_path, float prestereo_scale, int block_size, int num_disparities, int pre_filter_cap, int min_disparity, int texture_threshold, int uniqueness_ratio, int speckle_window_size, int speckle_range, int disp12maxdiff, int order, bool use_internearest, bool use_interarea, int n_cam_resets) {
+CameraDepth::CameraDepth(Settings settings) {
   // Initialize Calibration maps
-  cv::FileStorage fs(calibration_path, cv::FileStorage::READ);
+  cv::FileStorage fs(settings.camera_calibration_path, cv::FileStorage::READ);
   if (!fs.isOpened()) {
-    std::cerr << "ERROR: Failed to open calibration file at path " << calibration_path << std::endl;
+    std::cerr << "ERROR: Failed to open calibration file at path " << settings.camera_calibration_path << std::endl;
     return;
   }
 
@@ -43,43 +43,44 @@ CameraDepth::CameraDepth(std::string calibration_path, std::string left_path, st
 
   // Initialize StereoBM ptr
   this->stereo = cv::StereoBM::create();
-  stereo->setBlockSize(block_size);
-  stereo->setNumDisparities(num_disparities); // must be divisible by 16
-  stereo->setPreFilterCap(pre_filter_cap);
-  stereo->setMinDisparity(min_disparity);
-  stereo->setTextureThreshold(texture_threshold);
-  stereo->setUniquenessRatio(uniqueness_ratio);
-  stereo->setSpeckleWindowSize(speckle_window_size);
-  stereo->setSpeckleRange(speckle_range);
-  stereo->setDisp12MaxDiff(disp12maxdiff);
+  stereo->setBlockSize(settings.block_size);
+  stereo->setNumDisparities(settings.num_disparities); // must be divisible by 16
+  stereo->setPreFilterCap(settings.prefilter_cap);
+  stereo->setMinDisparity(settings.min_disparity);
+  stereo->setTextureThreshold(settings.texture_threshold);
+  stereo->setUniquenessRatio(settings.uniqueness_ratio);
+  stereo->setSpeckleWindowSize(settings.speckle_window_size);
+  stereo->setSpeckleRange(settings.speckle_range);
+  stereo->setDisp12MaxDiff(settings.disp12maxdiff);
 
-  this->num_disparities = num_disparities;
-  this->use_internearest = use_internearest;
-  this->use_interarea = use_interarea;
-  this->n_cam_resets = n_cam_resets;
+  this->num_disparities = settings.num_disparities;
+  this->use_internearest = settings.use_internearest;
+  this->use_interarea = settings.use_interarea;
+  this->n_cam_resets = settings.n_cam_resets;
 
   // Initialize Cameras
-  this->left_path = left_path;
-  this->right_path = right_path;
-  if (!this->setCameras() && (left_path != "test_settings" || right_path != "test_settings")) {
-    std::cerr << "ERROR: Failed to set cameras at path " << left_path << " & " << right_path << std::endl;
+  this->left_path = settings.left_camera_path;
+  this->right_path = settings.right_camera_path;
+  
+  if (!this->setCameras() && (settings.left_camera_path != "test_settings" || settings.right_camera_path != "test_settings")) {
+    std::cerr << "ERROR: Failed to set cameras at path " << settings.left_camera_path << " & " << settings.right_camera_path << std::endl;
     return;
   }
 
   // Set prestereo scale size
   cv::Mat test;
   this->left_cam >> test;
-  int image_width = test.cols * prestereo_scale;
-  int image_height = test.rows * prestereo_scale;
+  int image_width = test.cols * settings.prestereo_scale;
+  int image_height = test.rows * settings.prestereo_scale;
   this->prestereo_scale = cv::Size(image_width, image_height);
-  int hilbert_width = std::pow(2, order);
+  int hilbert_width = std::pow(2, settings.order);
   this->hilbert_scale = cv::Size(hilbert_width, hilbert_width);
 
   // Set cropping bounds
-  this->left_bound = (int) 7 * prestereo_scale;
-  this->right_bound = (int) 472 * prestereo_scale;
-  this->upper_bound = (int) 102 * prestereo_scale;
-  this->lower_bound = (int) 632 * prestereo_scale;
+  this->left_bound = (int) 7 * settings.prestereo_scale;
+  this->right_bound = (int) 472 * settings.prestereo_scale;
+  this->upper_bound = (int) 102 * settings.prestereo_scale;
+  this->lower_bound = (int) 632 * settings.prestereo_scale;
 }
 
 CameraDepth::~CameraDepth() {

@@ -31,15 +31,15 @@ TEST_F(SettingsTest, audiomanager_setup) {
 }
 
 TEST_F(SettingsTest, cameradepth_setup) {
-  CameraDepth cd(*settings);
+  CameraDepth cd(*this->settings);
   
-  ASSERT_EQ(cd.get_left_path(), "test_settings");
   ASSERT_EQ(cd.get_right_path(), "test_settings");
+  ASSERT_EQ(cd.get_left_path(), "test_settings");
+  ASSERT_EQ(cd.get_n_cam_resets(), 5);
   ASSERT_EQ(cd.get_stereo()->getNumDisparities(), 64);
   ASSERT_EQ(cd.get_num_disparities(), 64);
   ASSERT_EQ(cd.get_use_internearest(), true);
   ASSERT_EQ(cd.get_use_interarea(), false);
-  ASSERT_EQ(cd.get_n_cam_resets(), 5);
 }
 
 TEST_F(SettingsTest, hilbert_setup) {

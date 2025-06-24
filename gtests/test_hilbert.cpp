@@ -64,10 +64,18 @@ class HilbertTest : public testing::Test {
         this->sol3.at(i) = i;
       }
 
-      this->order0 = std::make_unique<Hilbert>(0);
-      this->order1 = std::make_unique<Hilbert>(1);
-      this->order2 = std::make_unique<Hilbert>(2);
-      this->order3 = std::make_unique<Hilbert>(3);
+      Settings s0 = Settings("");
+      s0.order = 0;
+      Settings s1 = Settings("");
+      s1.order = 1;
+      Settings s2 = Settings("");
+      s2.order = 2;
+      Settings s3 = Settings("");
+      s3.order = 3;
+      this->order0 = std::make_unique<Hilbert>(s0);
+      this->order1 = std::make_unique<Hilbert>(s1);
+      this->order2 = std::make_unique<Hilbert>(s2);
+      this->order3 = std::make_unique<Hilbert>(s3);
 
     }
 

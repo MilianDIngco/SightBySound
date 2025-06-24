@@ -22,8 +22,7 @@ class AudioManager {
 
     void generateSines(std::vector<short> &samples, std::vector<float> volumes, int sample_rate = -1, int phase = 0);
 
-    AudioManager(int sample_rate, float duration, double min_freq, double max_freq, double fade_percent, double volume, int order);
-    AudioManager(Settings settings) : AudioManager(settings.sample_rate, settings.duration, settings.min_freq, settings.max_freq, settings.fade_percent, settings.volume, settings.order) {};
+    AudioManager(Settings settings);
 
     int get_sample_rate() { return this->sample_rate; };
     float get_duration() { return this->duration; };

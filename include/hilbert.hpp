@@ -1,7 +1,6 @@
 #ifndef HILBERT_H
 #define HILBERT_H
 
-//#include "opencv2/core/mat.hpp"
 #include "settings.hpp"
 #include <cmath>
 #include <vector>
@@ -37,8 +36,7 @@ class Hilbert {
     int getNPoints(int order);
 
   public:
-    Hilbert(int order);
-    Hilbert(Settings settings) : Hilbert(settings.order) {};
+    Hilbert(Settings settings);
 
     template<typename T>
     std::vector<T> toHilbert(std::vector<std::vector<T>> arr) {
@@ -82,27 +80,6 @@ class Hilbert {
       return res;
     };
 
-    /*
-    std::vector<uchar> toHilbert(cv::Mat arr) {
-      int img_wid = arr.cols;
-      int img_hei = arr.rows;
-      std::vector<uchar> res(this->n_points);
-      if (img_wid != img_hei) {
-        std::cerr << "ERROR (toHilbert): Non-square image passed" << std::endl;
-        return res;
-      }
-      if (img_wid * img_hei != this->n_points) {
-        std::cerr << "ERROR (toHilbert): Image not same size as order" << std::endl;
-        return res;
-      }
-
-      for (int i = 0; i < this->n_points; i++) {
-        Pair coord = this->hilbert.at(i);
-        res.at(i) = arr.at<uchar>(coord.x, coord.y);
-      }
-      return res;
-    };
-    */
     int get_order() { return this->order; };
     int get_n_points() { return this->n_points; };
 };

@@ -7,7 +7,8 @@
 #include <string>
 
 Settings::Settings(const std::string &settings_path) {
-  this->loadFile(settings_path);
+  if (settings_path.length() > 0)
+    this->loadFile(settings_path);
 }
 
 void Settings::loadFile(const std::string &filepath) {

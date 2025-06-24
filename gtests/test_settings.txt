@@ -5,10 +5,10 @@ d duration .1
 i sample_rate 22000
 d volume 1
 b save_img 0
-s save_img_path ./images/
+s save_img_path ../images/
 i n_runs 2000
 d fade_percent 0.1
-s camera_calibration_path 415.yml
+s camera_calibration_path /home/milianingco/Research/SBS/gtests/calibration_data.yml
 s right_camera_path test_settings
 s left_camera_path test_settings
 i block_size 15

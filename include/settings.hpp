@@ -35,6 +35,7 @@ class Settings {
     bool use_interarea;
     bool debug_print;
     int n_cam_resets;
+    double soft_threshold;
 
     using ValueType = std::variant<int, double, std::string, bool>;
     std::unordered_map<std::string, ValueType> settings_map;

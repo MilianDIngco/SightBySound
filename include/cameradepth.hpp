@@ -39,8 +39,7 @@ class CameraDepth {
     cv::Size prestereo_scale;
     cv::Size hilbert_scale;
 
-    CameraDepth(std::string calibration_path, std::string left_path, std::string right_path, float prestereo_scale, int block_size, int num_disparities, int pre_filter_cap, int min_disparity, int texture_threshold, int uniqueness_ratio, int speckle_window_size, int speckle_range, int disp12maxdiff, int order, bool use_internearest, bool use_interarea, int n_cam_resets); 
-    CameraDepth(Settings settings) : CameraDepth(settings.camera_calibration_path, settings.left_camera_path, settings.right_camera_path, settings.prestereo_scale, settings.block_size, settings.num_disparities, settings.prefilter_cap, settings.min_disparity, settings.texture_threshold, settings.uniqueness_ratio, settings.speckle_window_size, settings.speckle_range, settings.disp12maxdiff, settings.order, settings.use_internearest, settings.use_interarea, settings.n_cam_resets) {};
+    CameraDepth(Settings settings);
 
     ~CameraDepth();
 
