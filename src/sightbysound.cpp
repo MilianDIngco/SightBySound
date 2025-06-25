@@ -168,7 +168,7 @@ void SightBySound::imageGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
       lr_img_queue.push(left_frame);
     }
 
-    this->debugPrint("Image posted");
+    //this->debugPrint("Image posted");
 
     sem_post(&lr_img_sem);
   }
@@ -210,7 +210,7 @@ void SightBySound::depthGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
       img_queue.push(depth);
     }
 
-    this->debugPrint("Depth posted");
+    //this->debugPrint("Depth posted");
     sem_post(&img_sem);
   }
 }
@@ -219,6 +219,7 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
                             std::vector<ALuint>&free_buffers, ALuint &source, std::mutex &audio_mutex, sem_t &audio_sem) 
 {
   constexpr ALuint empty_buffer = 0;
+  double phase = 0;
 
   for (int i = 0; i < this->n_runs; i++) {
     cv::Mat image;
@@ -242,7 +243,8 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
 
     std::vector<short> samples;
     audio_manager.generateSampleArray(samples);
-    audio_manager.generateSines(samples, volumes);
+    phase = audio_manager.generateSines(samples, volumes, phase);
+    this->debugPrint("Phase: " + std::to_string(phase));
 
     ALint buffers_queued;
     alGetSourcei(source, AL_BUFFERS_QUEUED, &buffers_queued);
@@ -266,7 +268,7 @@ void SightBySound::audioGen(Hilbert hilbert, AudioManager audio_manager, std::qu
       alBufferData(buffer, AL_FORMAT_MONO16, samples.data(), samples.size() * sizeof(short), audio_manager.get_sample_rate());
       alSourceQueueBuffers(source, 1, &buffer);
     }
-    this->debugPrint("Audio posted");
+    //this->debugPrint("Audio posted");
     sem_post(&audio_sem);
   }
 }
@@ -312,7 +314,7 @@ void SightBySound::audioPlay(AudioManager audio_manager, std::vector<ALuint> &fr
       }
     }
 
-    this->debugPrint("Audio played");
+    //this->debugPrint("Audio played");
 
   }
 }

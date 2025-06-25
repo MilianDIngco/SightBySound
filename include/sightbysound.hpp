@@ -17,9 +17,6 @@ class SightBySound {
   private:
     std::string settings_path;
     std::unique_ptr<Settings> settings;
-    std::unique_ptr<AudioManager> audio_manager;
-    std::unique_ptr<CameraDepth> camera_depth;
-    std::unique_ptr<Hilbert> hilbert;
     std::queue<cv::Mat> lr_img_queue;
     std::queue<cv::Mat> img_queue;
     sem_t lr_img_sem;
@@ -48,6 +45,11 @@ class SightBySound {
     void debugPrint(const std::string str);
 
   public: 
+
+    std::unique_ptr<AudioManager> audio_manager;
+    std::unique_ptr<CameraDepth> camera_depth;
+    std::unique_ptr<Hilbert> hilbert;
+
     SightBySound(const std::string &settings_path);
     ~SightBySound();
     void run();

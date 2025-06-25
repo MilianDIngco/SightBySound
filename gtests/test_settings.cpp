@@ -28,6 +28,9 @@ TEST_F(SettingsTest, audiomanager_setup) {
   ASSERT_EQ(am.get_fade_percent(), 0.1);
   ASSERT_EQ(am.get_volume(), 1);
   ASSERT_EQ(am.get_frequencies().size(), 64);
+  ASSERT_EQ(am.get_audio_threshold(), 0.8);
+  ASSERT_EQ(am.get_audio_soften(), 5);
+  ASSERT_EQ(am.get_audio_max(), 0.9);
 }
 
 TEST_F(SettingsTest, cameradepth_setup) {

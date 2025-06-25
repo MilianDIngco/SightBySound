@@ -106,6 +106,9 @@ void Settings::loadFile(const std::string &filepath) {
     this->use_interarea = this->get<bool>("use_interarea");
     this->debug_print = this->get<bool>("debug_print");
     this->n_cam_resets = this->get<int>("n_cam_resets");
+    this->audio_threshold = this->get<double>("audio_threshold");
+    this->audio_soften = this->get<double>("audio_soften");
+    this->audio_max = this->get<double>("audio_max");
   } catch (const std::out_of_range& e) {
     std::cerr << "ERROR: Missing settings key: " << e.what() << std::endl;
     return;

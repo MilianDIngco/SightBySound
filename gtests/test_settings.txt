@@ -26,3 +26,6 @@ b use_internearest 1
 b use_interarea 0
 b debug_print 1
 i n_cam_resets 5
+d audio_threshold 0.8
+d audio_soften 5
+d audio_max 0.9

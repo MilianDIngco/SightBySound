@@ -35,7 +35,9 @@ class Settings {
     bool use_interarea;
     bool debug_print;
     int n_cam_resets;
-    double soft_threshold;
+    double audio_threshold;
+    double audio_soften;
+    double audio_max;
 
     using ValueType = std::variant<int, double, std::string, bool>;
     std::unordered_map<std::string, ValueType> settings_map;

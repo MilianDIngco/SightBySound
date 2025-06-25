@@ -14,13 +14,18 @@ class AudioManager {
     double max_freq;
     double fade_percent;
     double volume;
+    double audio_threshold;
+    double audio_soften;
+    double audio_max;
 
   public:
     void generateSampleArray(std::vector<short> &samples, int sample_rate = -1, float duration = -1);
 
     double generateFrequencies(std::vector<float> &frequencies, double min_freq, double max_freq, int n_points);
 
-    void generateSines(std::vector<short> &samples, std::vector<float> volumes, int sample_rate = -1, int phase = 0);
+    double generateSines(std::vector<short> &samples, std::vector<float> volumes, double phase);
+
+    double soft_max(double sample, double soften, double threshold);
 
     AudioManager(Settings settings);
 
@@ -32,6 +37,9 @@ class AudioManager {
     double get_fade_percent() { return this->fade_percent; };
     double get_volume() { return this->volume; };
     std::vector<float> get_frequencies() { return this->frequencies; };   
+    double get_audio_threshold() { return this->audio_threshold; };
+    double get_audio_soften() { return this->audio_soften; };
+    double get_audio_max() { return this->audio_max; };
 
 };
 
