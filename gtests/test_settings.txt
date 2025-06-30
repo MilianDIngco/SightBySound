@@ -29,3 +29,7 @@ i n_cam_resets 5
 d audio_threshold 0.8
 d audio_soften 5
 d audio_max 0.9
+i left_bound 0
+i right_bound 2000
+i upper_bound 0
+i lower_bound 2000

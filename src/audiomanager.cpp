@@ -33,7 +33,7 @@ double AudioManager::generateFrequencies(std::vector<float> &frequencies, double
   return (double)lcm_num / gcd_den;
 }
 
-double AudioManager::generateSines(std::vector<short> &samples, std::vector<float> volumes, double phase) {
+double AudioManager::generateSines(std::vector<short> &samples, std::vector<float> &volumes, double phase) {
   int sample_count = samples.size();
 
   int fade_samples = (int)((double)sample_count * this->fade_percent);
@@ -52,7 +52,6 @@ double AudioManager::generateSines(std::vector<short> &samples, std::vector<floa
     // Normalize then softmax the sample
     sample /= this->frequencies.size();
     sample = this->soft_max(sample, this->audio_soften, this->audio_threshold);
-    std::cout << sample << std::endl;
     // i that indexes into samples array
     int sample_i = i - start_sample;
 

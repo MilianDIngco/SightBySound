@@ -38,6 +38,10 @@ class Settings {
     double audio_threshold;
     double audio_soften;
     double audio_max;
+    int left_bound;
+    int right_bound;
+    int upper_bound;
+    int lower_bound;
 
     using ValueType = std::variant<int, double, std::string, bool>;
     std::unordered_map<std::string, ValueType> settings_map;

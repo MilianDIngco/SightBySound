@@ -178,6 +178,7 @@ void SightBySound::depthGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
                             std::queue<cv::Mat> &img_queue, sem_t &img_sem, std::mutex &img_mutex) 
 {
   std::string save_path = this->save_img_path + "depth.png";
+  std::string save_scale_path = this->save_img_path + "scaled_depth.png";
 
   this->debugPrint("Printing to " + save_path);
   for (int i = 0; i < this->n_runs; i++) {
@@ -200,6 +201,9 @@ void SightBySound::depthGen(CameraDepth camera_depth, std::queue<cv::Mat> &lr_im
       cv::imwrite(save_path, depth);
 
     camera_depth.scaleImages(depth, camera_depth.hilbert_scale);
+
+    if (this->save_img)
+      cv::imwrite(save_scale_path, depth);
 
     while (img_queue.size() >= this->max_buffer) {
       std::this_thread::sleep_for(std::chrono::milliseconds(100));

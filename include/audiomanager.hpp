@@ -23,7 +23,7 @@ class AudioManager {
 
     double generateFrequencies(std::vector<float> &frequencies, double min_freq, double max_freq, int n_points);
 
-    double generateSines(std::vector<short> &samples, std::vector<float> volumes, double phase);
+    double generateSines(std::vector<short> &samples, std::vector<float> &volumes, double phase);
 
     double soft_max(double sample, double soften, double threshold);
 

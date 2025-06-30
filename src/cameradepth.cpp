@@ -77,10 +77,10 @@ CameraDepth::CameraDepth(Settings settings) {
   this->hilbert_scale = cv::Size(hilbert_width, hilbert_width);
 
   // Set cropping bounds
-  this->left_bound = (int) 7 * settings.prestereo_scale;
-  this->right_bound = (int) 472 * settings.prestereo_scale;
-  this->upper_bound = (int) 102 * settings.prestereo_scale;
-  this->lower_bound = (int) 632 * settings.prestereo_scale;
+  this->left_bound = (settings.left_bound > 0) ? settings.left_bound : 0;
+  this->right_bound = (settings.right_bound < image_width) ? settings.right_bound : image_width;
+  this->upper_bound = (settings.upper_bound > 0) ? settings.upper_bound : 0;
+  this->lower_bound = (settings.lower_bound < image_height) ? settings.lower_bound : image_height;
 }
 
 CameraDepth::~CameraDepth() {
@@ -133,7 +133,7 @@ cv::Mat CameraDepth::getDepthImage(cv::Mat &left_frame, cv::Mat &right_frame) {
   disparity.convertTo(depth, CV_8U, 255.0 / (this->num_disparities * 16));
 
   // Crop image
-  depth = depth(cv::Range(this->left_bound, this->right_bound), cv::Range(this->upper_bound, this->lower_bound));
+  depth = depth(cv::Range(this->upper_bound, this->lower_bound), cv::Range(this->left_bound, this->right_bound)); 
 
   return depth;
 }

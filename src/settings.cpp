@@ -109,6 +109,10 @@ void Settings::loadFile(const std::string &filepath) {
     this->audio_threshold = this->get<double>("audio_threshold");
     this->audio_soften = this->get<double>("audio_soften");
     this->audio_max = this->get<double>("audio_max");
+    this->left_bound = this->get<int>("left_bound");
+    this->right_bound = this->get<int>("right_bound");
+    this->upper_bound = this->get<int>("upper_bound");
+    this->lower_bound = this->get<int>("lower_bound");
   } catch (const std::out_of_range& e) {
     std::cerr << "ERROR: Missing settings key: " << e.what() << std::endl;
     return;
