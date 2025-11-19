@@ -1,4 +1,4 @@
-i order 3
+i order 4
 d min_freq 40
 d max_freq 300
 d duration 0.1
@@ -11,9 +11,9 @@ d fade_percent 0.1
 s camera_calibration_path ./settings/8cm2.yml
 s right_camera_path /dev/v4l/by-path/pci-0000:07:00.4-usb-0:1:1.0-video-index0
 s left_camera_path /dev/v4l/by-path/pci-0000:08:00.3-usb-0:1:1.0-video-index0
-i block_size 25
-i num_disparities 128
-i prefilter_cap 15
+i block_size 9
+i num_disparities 64
+i prefilter_cap 19
 i min_disparity 10
 i texture_threshold 10
 i uniqueness_ratio 0
@@ -29,7 +29,7 @@ i n_cam_resets 10
 d audio_threshold 0.5
 d audio_soften 10
 d audio_max 0.8
-i left_bound 150
-i right_bound 630
-i upper_bound 10
-i lower_bound 470
+i left_bound 70
+i right_bound 625
+i upper_bound 0
+i lower_bound 460

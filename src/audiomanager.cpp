@@ -2,7 +2,6 @@
 #include "settings.hpp"
 #include <cmath>
 #include <numeric>
-#include <iostream>
 
 void AudioManager::generateSampleArray(std::vector<short> &samples, int sample_rate, float duration) {
   if (sample_rate == -1) {
