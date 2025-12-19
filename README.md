@@ -57,4 +57,4 @@ Ensure camera dynamic link refers to the correct path on different computers
 - Clean up and add documentation to camera calibration scripts, rename test folder
 - Move FunctionTimer static library to separate repository
 
-# License
+# Citation
