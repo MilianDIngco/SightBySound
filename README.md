@@ -17,7 +17,8 @@ This project generates audio from grayscale depth maps using a Hilbert curve tra
 
 ### Prerequisites
 
-- OpenCV
+- [OpenCV 4+](https://opencv.org)
+- [OpenAL](https://openal.org) or [OpenAL Soft](https://openal-soft.org/)
 - A C++ compiler (e.g., `g++`)
 - `make`
 
