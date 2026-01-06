@@ -22,7 +22,8 @@ This project generates audio from grayscale depth maps using a Hilbert curve tra
 
 ### Prerequisites
 
-- Two cameras and a speaker (of course!)
+- Two statically mounted cameras
+- A speaker
 - A C++ compiler (e.g., `g++`)
 - `make`
 
