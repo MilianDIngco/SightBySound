@@ -58,3 +58,5 @@ Ensure camera dynamic link refers to the correct path on different computers
 - Move FunctionTimer static library to separate repository
 
 # Citation
+
+M. Ingco and S. Yoon, “Sight By Sound: Real-Time Sonification of Stereo Depth Maps using Hilbert Curves for Assistive Navigation supported by a Virtual Training Environment,” in proceedings of 2026 IEEE International Conference on Artificial Intelligence and eXtended and Virtual Reality (AIxVR), Osaka, Japan, January 26-28, 2026.
