@@ -2,32 +2,33 @@
 
 ![Project Logo](media/capture.jpg)
 
-## Depth Map Sonification
+Depth Map Sonification: This project generates audio from grayscale depth maps using a Hilbert curve traversal. Each pixel is associated with a frequency based on its position, and the pixel's brightness modulates the volume of the frequency. The final audio output is a composite of all the mapped frequencies, allowing the depth information to be perceived through sound.
 
-This project generates audio from grayscale depth maps using a Hilbert curve traversal. Each pixel is associated with a frequency based on its position, and the pixel's brightness modulates the volume of the frequency. The final audio output is a composite of all the mapped frequencies, allowing the depth information to be perceived through sound.
+## :loudspeaker: News
+- January 7, 2026: SightBySound project is live! :tada:
 
-## Features
+## :sparkles: Features
 
 - Depth-to-audio conversion via Hilbert curve
 - Debug and timing modes for performance testing
 - Customizable experiments for different settings
 - Data collection and analysis tools
 
-## Getting Started
+## :rocket: Getting Started
 
-### Dependencies
+### :package: Dependencies
 
 - [OpenCV 4+](https://opencv.org)
 - [OpenAL](https://openal.org) or [OpenAL Soft](https://openal-soft.org/)
 
-### Prerequisites
+### :clipboard: Prerequisites
 
 - Two statically mounted cameras
 - A speaker
 - A C++ compiler (e.g., `g++`)
 - `make`
 
-### Compiling and Running
+### :hammer_and_wrench: Compiling and Running
 
 #### Run the main program:
 ```bash
@@ -48,25 +49,46 @@ Run make clean if a new ./main file was not generated after running make DEBUG=1
 
 Ensure camera dynamic link refers to the correct path on different computers
 
-# Repository Structure
-- main.cpp – The entry point for generating and playing audio.
+## :open_file_folder: Repository Structure
 
-- settings.txt - Where settings are edited before runtime.
+```text
+.
+├── 📂 gtests/             # Scripts for camera calibration
+├── 📂 include/            # Header files
+├── 📂 src/                # Source files
+│   └── 📄 main.cpp        # The entry point for generating and playing audio.
+│   └── 📄 settings.cpp    # Used to run experiments with different parameter values.
+|   ...
+├── 📂 settings/           # Settings are edited here before runtime.
+├── 📄 .gitignore          # Git ignore rules
+├── 📄 CMakeList.txt       # CMakeList
+└── 📄 README.md           # Project overview and usage instructions.
+```
 
-- settings.cpp – Used to run experiments with different parameter values.
+## :date: To Do:
 
-- data_reader.cpp – Parses and outputs results from experiments.
+<dl>
+  <dt></dt>
+  <dd><span aria-hidden="true">:hourglass_flowing_sand:</span> Clean up and add documentation to camera calibration scripts, rename test folder </dd>
+  
+  <dt></dt>
+  <dd><span aria-hidden="true">:hourglass_flowing_sand:</span> Move FunctionTimer static library to separate repository</dd>
+</dl>
 
-- Makefile – Build automation.
 
-- README.md – Project overview and usage instructions.
+## :scroll: Citation
 
-- test folder - Camera calibration scripts
+```text
+@inproceedings{Ingco2026Sight,
+  author    = {Ingco, M. and Yoon, S.},
+  title     = {Sight By Sound: Real-Time Sonification of Stereo Depth Maps using Hilbert Curves for Assistive Navigation supported by a Virtual Training Environment},
+  booktitle = {Proceedings of the 2026 IEEE International Conference on Artificial Intelligence and eXtended and Virtual Reality (AIxVR)},
+  year      = {2026},
+  month     = {Jan},
+  address   = {Osaka, Japan},
+  note      = {January 26--28},
+  publisher = {IEEE}
+}
+```
 
-## To Do:
-- Clean up and add documentation to camera calibration scripts, rename test folder
-- Move FunctionTimer static library to separate repository
 
-# Citation
-
-M. Ingco and S. Yoon, “Sight By Sound: Real-Time Sonification of Stereo Depth Maps using Hilbert Curves for Assistive Navigation supported by a Virtual Training Environment,” in proceedings of 2026 IEEE International Conference on Artificial Intelligence and eXtended and Virtual Reality (AIxVR), Osaka, Japan, January 26-28, 2026.
