@@ -1,4 +1,7 @@
 # SightBySound
+
+![Project Logo](media/capture.jpg)
+
 ## Depth Map Sonification
 
 This project generates audio from grayscale depth maps using a Hilbert curve traversal. Each pixel is associated with a frequency based on its position, and the pixel's brightness modulates the volume of the frequency. The final audio output is a composite of all the mapped frequencies, allowing the depth information to be perceived through sound.
